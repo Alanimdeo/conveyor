@@ -1,0 +1,30 @@
+{
+  "name": "conveyor-backend",
+  "version": "0.0.0",
+  "author": "Alanimdeo <alan@imdeo.kr>",
+  "private": true,
+  "scripts": {
+    "prestart": "tsc",
+    "start": "node dist/index.js",
+    "dev": "supervisor -w 'src,dist/public' -e 'ts,html' --exec yarn start"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "dotenv": "^16.0.3",
+    "express": "~4.16.1",
+    "http-errors": "^2.0.0",
+    "morgan": "~1.9.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.3",
+    "@types/express": "^4.17.17",
+    "@types/http-errors": "^2.0.1",
+    "@types/morgan": "^1.9.4",
+    "@types/node": "^18.15.11",
+    "supervisor": "^0.12.0",
+    "typescript": "^5.0.3"
+  }
+}

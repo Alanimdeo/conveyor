@@ -1,0 +1,9 @@
+.vscode
+node_modules
+dist
+test
+
+.DS_Store
+.env
+*.sqlite
+*.db
