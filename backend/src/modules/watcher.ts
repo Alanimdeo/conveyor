@@ -1,7 +1,7 @@
 import chokidar from "chokidar";
 import type { Database, WatchDirectory } from "./db";
 import path from "path";
-import { rename } from "fs/promises";
+import { mkdir, rename } from "fs/promises";
 
 export const ignoreDotFiles = /(^|[\/\\])\../;
 
@@ -55,7 +55,13 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
       `Moving ${originalFilename} to ${matchedCondition.destination}` +
         (filename !== originalFilename ? ` as ${filename}` : "")
     );
+
+    await mkdir(matchedCondition.destination, { recursive: true });
     await rename(file, path.join(matchedCondition.destination, filename));
+    // if (type === "file") {
+    // } else {
+    //   await mkdir(matchedCondition.destination, { recursive: true });
+    // }
   }
 
   async function getConditionMatch(file: string, type: "file" | "directory") {

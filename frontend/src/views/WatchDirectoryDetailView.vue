@@ -2,17 +2,16 @@
   <ElPageHeader @back="router.back()">
     <template #content>
       <div class="title">
-        <span class="folder-id">폴더 #{{ watchDirectory.id }}</span>
+        <span class="folder-id">{{ width >= 512 ? "폴더 " : "" }}#{{ watchDirectory.id }}</span>
         <ElTag v-if="watchDirectory.enabled" type="success">사용 중</ElTag>
         <ElTag v-else type="danger">비활성화</ElTag>
       </div>
-      <!-- <p>{{ watchDirectory.path }}</p> -->
     </template>
     <template #extra>
-      <div class="title">
+      <div v-if="width >= 512" class="title">
         <ElButton
           type="primary"
-          :icon="Select"
+          :icon="Check"
           @click="saveWatchDirectory()"
           :disabled="isEqual(watchDirectoryInitial, watchDirectory)"
         >
@@ -20,20 +19,27 @@
         </ElButton>
         <ElButton type="danger" :icon="Delete" @click="removeDirectoryDialog = true">삭제</ElButton>
       </div>
+      <div v-else class="title">
+        <ElButton
+          type="primary"
+          :icon="Check"
+          @click="saveWatchDirectory()"
+          :disabled="isEqual(watchDirectoryInitial, watchDirectory)"
+        />
+        <ElButton type="danger" :icon="Delete" @click="removeDirectoryDialog = true" />
+      </div>
     </template>
     <div class="tabs">
       <ElTabs v-model="activeTab">
         <ElTabPane label="설정" name="settings">
           <ElForm :model="watchDirectory">
             <p>일반</p>
-            <div class="horizontal">
-              <ElFormItem label="활성화">
-                <ElSwitch v-model="watchDirectory.enabled" />
-              </ElFormItem>
-              <ElFormItem label="경로" class="input">
-                <ElInput v-model="watchDirectory.path" />
-              </ElFormItem>
-            </div>
+            <ElFormItem label="활성화">
+              <ElSwitch v-model="watchDirectory.enabled" />
+            </ElFormItem>
+            <ElFormItem label="경로" class="input">
+              <ElInput v-model="watchDirectory.path" />
+            </ElFormItem>
             <p>감시 설정</p>
             <div class="horizontal">
               <ElFormItem label="하위 폴더까지 탐색">
@@ -45,6 +51,9 @@
             </div>
             <p>폴링</p>
             <div class="alert">
+              <ElAlert type="info" show-icon :closable="false" style="margin-bottom: 10px">
+                <span>Conveyor가 변경 내용을 감지하지 못할 경우 폴링을 사용하도록 설정해 보세요.</span>
+              </ElAlert>
               <ElAlert type="warning" show-icon :closable="false" style="margin-bottom: 10px">
                 <span>폴링 간격이 너무 짧으면 CPU 사용량이 높아질 수 있습니다.</span>
               </ElAlert>
@@ -173,7 +182,7 @@
     @removed="router.replace('/directory')"
   />
 
-  <ElDialog v-model="removeConditionDialog" title="조건 삭제">
+  <ElDialog v-model="removeConditionDialog" title="조건 삭제" style="max-width: 560px; width: 100%">
     <span class="bold">조건 {{ removeConditionId + 1 }}</span>
     <span>을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</span>
 
@@ -183,7 +192,11 @@
     </template>
   </ElDialog>
 
-  <ElDialog v-model="createConditionDialog" :title="`조건 ${createConditionId === -1 ? '생성' : '편집'}`">
+  <ElDialog
+    v-model="createConditionDialog"
+    :title="`조건 ${createConditionId === -1 ? '생성' : '편집'}`"
+    style="max-width: 560px; width: 100%"
+  >
     <ElForm label-position="left" :model="createConditionOptions">
       <ElFormItem label="활성화">
         <ElSwitch v-model="createConditionOptions.enabled" />
@@ -201,6 +214,12 @@
       <ElFormItem label="패턴">
         <ElInput v-model="createConditionOptions.pattern" />
       </ElFormItem>
+      <ElAlert type="warning" show-icon :closable="false" style="margin-bottom: 10px">
+        <span>
+          이동 경로에 파일 이름을 포함하지 마세요! 이 행위는 의도되지 않은 동작을 일으킬 수 있으며, 파일 손상의 위험성이
+          있습니다.
+        </span>
+      </ElAlert>
       <ElFormItem label="이동 경로">
         <ElInput v-model="createConditionOptions.destination" />
       </ElFormItem>
@@ -246,12 +265,17 @@
 import { h, ref, watch } from "vue";
 import type { Ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { Delete, Edit, Plus, Select } from "@element-plus/icons-vue";
+import { Check, Delete, Edit, Plus } from "@element-plus/icons-vue";
 import { WatchType, type WatchCondition, type WatchDirectory, type RenamePattern } from "@/types";
 import RemoveWatchDirectoryDialog from "@/components/RemoveWatchDirectoryDialog.vue";
 import VXIcon from "@/components/VXIcon.vue";
 import { isEqual } from "lodash";
 import { ElMessage } from "element-plus";
+
+const width = ref(window.innerWidth);
+window.addEventListener("resize", () => {
+  width.value = window.innerWidth;
+});
 
 const router = useRouter();
 const route = useRoute();
@@ -456,14 +480,15 @@ await refreshWatchConditions();
 }
 .horizontal {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
+  column-gap: 1rem;
 }
 .input {
   flex: 1;
 }
 .alert {
-  display: inline-flex;
+  display: inline-block;
 }
 .card-header {
   display: flex;

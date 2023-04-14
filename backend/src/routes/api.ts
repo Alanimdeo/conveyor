@@ -71,9 +71,10 @@ router.post("/watch-directory", forceJSON, async (req: ConveyorRequest, res) => 
     }
     const id = await req.db!.addWatchDirectory(req.body);
     res.status(200).json({ success: true });
-    if (req.body.enabled) {
-      req.watchers![id] = await initializeWatcher(Object.assign(req.body, { id }), req.db!);
-    }
+    // 어차피 감시 조건이 없어 활성화되지 않음
+    // if (req.body.enabled) {
+    //   req.watchers![id] = await initializeWatcher(Object.assign(req.body, { id }), req.db!);
+    // }
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : err });
   }
@@ -96,9 +97,17 @@ router.patch("/watch-directory/:id", forceJSON, async (req: ConveyorRequest, res
       return;
     }
     await req.db!.updateWatchDirectory(id, req.body);
-    req.watchers![id].close();
+    if (req.watchers![id]) {
+      req.watchers![id].close();
+    }
     if (req.body.enabled) {
-      req.watchers![id] = await initializeWatcher(Object.assign(req.body, { id }), req.db!);
+      try {
+        req.watchers![id] = await initializeWatcher(Object.assign(req.body, { id }), req.db!);
+      } catch (err) {
+        if (!(err instanceof Error) || err.message !== "No active conditions found.") {
+          console.error(err);
+        }
+      }
     }
     res.status(200).json({ success: true });
   } catch (err) {
@@ -122,8 +131,10 @@ router.delete("/watch-directory/:id", async (req: ConveyorRequest, res) => {
     for (const condition of await req.db!.getWatchConditions(id)) {
       await req.db!.removeWatchCondition(condition.id);
     }
-    req.watchers![id].close();
-    delete req.watchers![id];
+    if (req.watchers![id]) {
+      req.watchers![id].close();
+      delete req.watchers![id];
+    }
     res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : err });
@@ -170,6 +181,9 @@ router.post("/watch-condition/:directoryId", forceJSON, async (req: ConveyorRequ
       return;
     }
     await req.db!.addWatchCondition(req.body);
+    if (directory.enabled && !req.watchers![directoryId]) {
+      req.watchers![directoryId] = await initializeWatcher(directory, req.db!);
+    }
     res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : err });
@@ -193,6 +207,10 @@ router.patch("/watch-condition/:id", forceJSON, async (req: ConveyorRequest, res
       return;
     }
     await req.db!.updateWatchCondition(id, req.body);
+    const directory = await req.db!.getWatchDirectoryById(condition.directoryId);
+    if (directory.enabled && !req.watchers![directory!.id]) {
+      req.watchers![directory.id] = await initializeWatcher(directory, req.db!);
+    }
     res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : err });
@@ -212,6 +230,11 @@ router.delete("/watch-condition/:id", async (req: ConveyorRequest, res) => {
       return;
     }
     await req.db!.removeWatchCondition(id);
+    const conditions = await req.db!.getWatchConditions(condition.directoryId);
+    if (conditions.length === 0 && req.watchers![condition.directoryId]) {
+      req.watchers![condition.directoryId].close();
+      delete req.watchers![condition.directoryId];
+    }
     res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : err });

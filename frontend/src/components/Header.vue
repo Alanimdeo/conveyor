@@ -2,13 +2,13 @@
   <ElHeader>
     <ElMenu :default-active="activeIndex" mode="horizontal" :ellipsis="false" router>
       <div class="logo">
-        <!-- <img src="@/assets/logo.svg" alt="logo" width="auto" /> -->
+        <img src="/logo.svg" alt="logo" :class="['logo-img', headerStore.isDark ? 'white' : null]" />
         <p class="logo-title">Conveyor</p>
       </div>
 
-      <ElMenuItem index="/">Home</ElMenuItem>
-      <ElMenuItem index="/directory">Watch Directories</ElMenuItem>
-      <ElMenuItem index="/logs">Logs</ElMenuItem>
+      <ElMenuItem index="/">홈</ElMenuItem>
+      <ElMenuItem index="/directory">폴더</ElMenuItem>
+      <ElMenuItem index="/logs">로그</ElMenuItem>
       <div class="flex-grow" />
 
       <div class="after">
@@ -49,12 +49,25 @@ const activeIndex = computed(() => headerStore.activeIndex);
   /* font-weight: 600; */
   /* color: #fff; */
 }
+.logo-img {
+  width: 32px;
+  height: 32px;
+  margin-right: 0.4em;
+}
+.white {
+  filter: invert(1);
+}
 .logo-title {
   /* font-size: 20px; */
   font-weight: 600;
   /* color: #fff; */
   margin: 0;
   margin-bottom: 0.4em;
+}
+@media (max-width: 480px) {
+  .logo-title {
+    display: none;
+  }
 }
 
 .after {

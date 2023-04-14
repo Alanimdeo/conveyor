@@ -18,13 +18,14 @@ import Header from "@/components/Header.vue";
   </ElMain>
 </template>
 
-<style scoped></style>
-
 <style>
 :root {
   font-family: "Noto Sans KR", sans-serif;
 }
 body {
   margin: 0;
+}
+.el-alert__description {
+  margin-top: 0 !important;
 }
 </style>

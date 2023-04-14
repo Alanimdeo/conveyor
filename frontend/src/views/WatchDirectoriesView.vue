@@ -28,7 +28,7 @@
     </ElCard>
   </div>
 
-  <ElDialog v-model="createDialog" title="폴더 생성">
+  <ElDialog v-model="createDialog" title="폴더 생성" style="max-width: 560px; width: 100%">
     <ElForm label-position="left" :model="createDirectoryOptions">
       <ElFormItem label="활성화">
         <ElSwitch v-model="createDirectoryOptions.enabled" />
@@ -39,17 +39,22 @@
       <ElFormItem label="하위 폴더까지 탐색">
         <ElSwitch v-model="createDirectoryOptions.recursive" />
       </ElFormItem>
-      <ElAlert type="warning" show-icon :closable="false" style="margin-bottom: 10px">
-        <span>폴링 간격이 너무 짧으면 CPU 사용량이 높아질 수 있습니다.</span>
-      </ElAlert>
+      <ElFormItem label=".으로 시작하는 파일 무시">
+        <ElSwitch v-model="createDirectoryOptions.ignoreDotFiles" />
+      </ElFormItem>
+      <div class="alert">
+        <ElAlert type="info" show-icon :closable="false" style="margin-bottom: 10px">
+          <span>Conveyor가 변경 내용을 감지하지 못할 경우 폴링을 사용하도록 설정해 보세요.</span>
+        </ElAlert>
+        <ElAlert type="warning" show-icon :closable="false" style="margin-bottom: 10px">
+          <span>폴링 간격이 너무 짧으면 CPU 사용량이 높아질 수 있습니다.</span>
+        </ElAlert>
+      </div>
       <ElFormItem label="폴링 사용">
         <ElSwitch v-model="createDirectoryOptions.usePolling" />
       </ElFormItem>
       <ElFormItem v-if="createDirectoryOptions.usePolling" label="폴링 간격 (ms)">
         <ElInputNumber v-model="createDirectoryOptions.interval" :min="100" :step="100" />
-      </ElFormItem>
-      <ElFormItem label=".으로 시작하는 파일 무시">
-        <ElSwitch v-model="createDirectoryOptions.ignoreDotFiles" />
       </ElFormItem>
       <div class="end">
         <ElButton @click="createDialog = false">취소</ElButton>
@@ -69,17 +74,8 @@
     v-model="removeDialog"
     :directory-id="currentDirectoryId"
     @removed="refreshWatchDirectories()"
+    style="max-width: 560px; width: 100%"
   />
-
-  <!-- <ElDialog v-model="removeDialog" title="폴더 삭제">
-    <span class="bold">폴더 #{{ currentDirectoryId }}</span>
-    <span>을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!</span>
-
-    <template #footer>
-      <ElButton @click="removeDialog = false">취소</ElButton>
-      <ElButton type="danger" @click="removeDirectory(currentDirectoryId)" :loading="removingDirectory">삭제</ElButton>
-    </template>
-  </ElDialog> -->
 </template>
 
 <script setup lang="ts">
@@ -214,5 +210,8 @@ await refreshWatchDirectories();
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.alert {
+  display: inline-block;
 }
 </style>
