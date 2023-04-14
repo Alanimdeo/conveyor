@@ -8,7 +8,7 @@
     "pretest": "tsc",
     "test": "node dist/index.js",
     "dev": "supervisor -w 'src,dist/public' -e 'ts,html' --exec yarn test",
-    "prebuild": "cd ../frontend && yarn build && cd ../backend",
+    "prebuild": "yarn && cd ../frontend && yarn && yarn build && cd ../backend",
     "build": "tsc"
   },
   "dependencies": {
