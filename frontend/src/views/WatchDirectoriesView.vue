@@ -104,7 +104,7 @@ const creatingDirectory = ref(false);
 async function openCreateDialog() {
   createDirectoryOptions.value.enabled = true;
   createDirectoryOptions.value.path = "";
-  createDirectoryOptions.value.recursive = false;
+  createDirectoryOptions.value.recursive = true;
   createDirectoryOptions.value.usePolling = false;
   createDirectoryOptions.value.interval = 5000;
   createDirectoryOptions.value.ignoreDotFiles = false;

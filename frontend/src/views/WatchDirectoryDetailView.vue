@@ -72,16 +72,7 @@
         <ElTabPane label="감시 조건" name="conditions">
           <div class="container">
             <div class="end">
-              <ElButton
-                type="primary"
-                :icon="Plus"
-                @click="
-                  createConditionId = -1;
-                  createConditionDialog = true;
-                "
-              >
-                추가
-              </ElButton>
+              <ElButton type="primary" :icon="Plus" @click="openCreateDialog()"> 추가 </ElButton>
             </div>
 
             <ElEmpty
@@ -379,6 +370,26 @@ const createConditionRenamePattern: Ref<RenamePattern> = ref({
   replaceValue: "",
   excludeExtension: false,
 });
+
+function openCreateDialog() {
+  createConditionId.value = -1;
+  createConditionOptions.value = {
+    directoryId: directoryId,
+    enabled: true,
+    type: WatchType.All,
+    useRegExp: false,
+    pattern: "",
+    destination: "",
+  };
+  createConditionOptionsHasRenamePattern.value = false;
+  createConditionRenamePattern.value = {
+    useRegExp: false,
+    pattern: "",
+    replaceValue: "",
+    excludeExtension: false,
+  };
+  createConditionDialog.value = true;
+}
 
 watch(
   () => createConditionId.value,

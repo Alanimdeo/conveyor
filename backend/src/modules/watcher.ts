@@ -18,6 +18,7 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
     ignoreInitial: true,
     persistent: true,
     depth: watchDirectory.recursive ? undefined : 0,
+    cwd: watchDirectory.path,
     usePolling: watchDirectory.usePolling,
     interval: watchDirectory.usePolling ? watchDirectory.interval : undefined,
     binaryInterval: watchDirectory.usePolling ? watchDirectory.interval : undefined,
