@@ -44,6 +44,13 @@ export class Database {
     return directory;
   }
 
+  async getWatchDirectoryCount() {
+    return await this.get<{
+      count: number;
+      enabled: number;
+    }>("SELECT COUNT(*) AS count, COUNT(CASE WHEN enabled = 1 THEN 1 END) AS enabled FROM watch_directories");
+  }
+
   async getWatchConditions(directoryId?: number) {
     let sql = "SELECT * FROM watch_conditions";
     if (directoryId) {
@@ -68,6 +75,13 @@ export class Database {
       condition.renamePattern = JSON.parse(condition.renamePattern);
     }
     return condition;
+  }
+
+  async getWatchConditionCount() {
+    return await this.get<{
+      count: number;
+      enabled: number;
+    }>("SELECT COUNT(*) AS count, COUNT(CASE WHEN enabled = 1 THEN 1 END) AS enabled FROM watch_conditions");
   }
 
   async addWatchDirectory(directory: Omit<WatchDirectory, "id">) {

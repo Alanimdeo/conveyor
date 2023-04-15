@@ -14,6 +14,15 @@ router.get("/watch-directory", async (req: ConveyorRequest, res) => {
   }
 });
 
+router.get("/watch-directory/count", async (req: ConveyorRequest, res) => {
+  try {
+    const count = await req.db!.getWatchDirectoryCount();
+    res.json(count);
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : err });
+  }
+});
+
 router.get("/watch-directory/:id", async (req: ConveyorRequest, res) => {
   try {
     const id = Number(req.params.id);

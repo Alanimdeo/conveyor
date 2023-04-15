@@ -14,6 +14,15 @@ router.get("/watch-condition", async (req: ConveyorRequest, res) => {
   }
 });
 
+router.get("/watch-condition/count", async (req: ConveyorRequest, res) => {
+  try {
+    const count = await req.db!.getWatchConditionCount();
+    res.json(count);
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : err });
+  }
+});
+
 router.get("/watch-condition/:id", async (req: ConveyorRequest, res) => {
   try {
     const id = Number(req.params.id);
