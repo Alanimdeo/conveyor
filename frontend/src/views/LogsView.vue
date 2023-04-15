@@ -93,9 +93,7 @@ async function load() {
     })
     .then((res) => {
       if (!res.error) {
-        console.log(res);
         res = res.filter((log: Log) => !logs.value.some((l) => l.id === log.id));
-        console.log(res);
         logs.value.push(...res);
       }
     });
