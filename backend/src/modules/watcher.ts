@@ -84,7 +84,8 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
           return filename.includes(condition.pattern);
         }
       })
-      .sort();
+      // 작은 것부터 정렬
+      .sort((a, b) => a.priority - b.priority);
     return matches.length !== 0 ? matches[0] : null;
   }
 
