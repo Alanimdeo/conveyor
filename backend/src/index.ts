@@ -15,7 +15,7 @@ async function main() {
   const server = express();
   const port = process.env.PORT || 3000;
 
-  const db = await loadDatabase(process.env.DATABASE_PATH);
+  const db = await loadDatabase(process.env.DATABASE_PATH, true);
   const watchers = await initializeWatchers(db);
 
   server.use(logger("combined"));

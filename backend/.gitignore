@@ -6,4 +6,5 @@ test
 .DS_Store
 .env
 *.sqlite
+*.sqlite-journal
 *.db

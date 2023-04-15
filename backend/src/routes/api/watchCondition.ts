@@ -6,8 +6,12 @@ import { forceJSON } from "../../middlewares/forceJSON";
 
 const router = Router();
 
-router.get("/watch-condition", (_, res) => {
-  res.status(400).json({ error: "You must specify a id" });
+router.get("/watch-condition", async (req: ConveyorRequest, res) => {
+  try {
+    res.json(await req.db!.getWatchConditions());
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : err });
+  }
 });
 
 router.get("/watch-condition/:id", async (req: ConveyorRequest, res) => {

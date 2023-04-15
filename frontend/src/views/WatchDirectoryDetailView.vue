@@ -2,7 +2,7 @@
   <ElPageHeader @back="router.back()">
     <template #content>
       <div class="title">
-        <span class="folder-id">{{ width >= 512 ? "폴더 " : "" }}#{{ watchDirectory.id }}</span>
+        <span class="folder-id">{{ watchDirectory.name || "폴더 #" + watchDirectory.id }}</span>
         <ElTag v-if="watchDirectory.enabled" type="success">사용 중</ElTag>
         <ElTag v-else type="danger">비활성화</ElTag>
       </div>
@@ -34,6 +34,9 @@
         <ElTabPane label="설정" name="settings">
           <ElForm :model="watchDirectory">
             <p>일반</p>
+            <ElFormItem label="이름">
+              <ElInput v-model="watchDirectory.name" />
+            </ElFormItem>
             <ElFormItem label="활성화">
               <ElSwitch v-model="watchDirectory.enabled" />
             </ElFormItem>
@@ -84,7 +87,7 @@
               <template #header>
                 <div class="card-header">
                   <div>
-                    <span class="card-title">조건 {{ index + 1 }}</span>
+                    <span class="card-title">{{ condition.name || "조건 " + (index + 1) }}</span>
                     <ElTag v-if="condition.enabled" type="success">사용 중</ElTag>
                     <ElTag v-else type="danger">비활성화</ElTag>
                   </div>
@@ -117,6 +120,10 @@
 
               <span class="big">설정</span>
               <div class="card-content mb">
+                <div>
+                  <span>우선 순위: </span>
+                  <span>{{ condition.priority }}</span>
+                </div>
                 <div>
                   <span>감시 대상: </span>
                   <span>{{ watchTypes[condition.type] }}</span>
@@ -189,8 +196,14 @@
     style="max-width: 560px; width: 100%"
   >
     <ElForm label-position="left" :model="createConditionOptions">
+      <ElFormItem label="이름">
+        <ElInput v-model="createConditionOptions.name" />
+      </ElFormItem>
       <ElFormItem label="활성화">
         <ElSwitch v-model="createConditionOptions.enabled" />
+      </ElFormItem>
+      <ElFormItem label="우선 순위">
+        <ElInputNumber v-model="createConditionOptions.priority" :min="0" />
       </ElFormItem>
       <ElFormItem label="감시 유형">
         <ElRadioGroup v-model="createConditionOptions.type">
@@ -356,8 +369,10 @@ async function removeCondition(id: number) {
 
 const createConditionId = ref(-1);
 const createConditionOptions: Ref<Omit<WatchCondition, "id">> = ref({
+  name: "",
   directoryId: directoryId,
   enabled: true,
+  priority: 0,
   type: WatchType.All,
   useRegExp: false,
   pattern: "",
@@ -374,8 +389,10 @@ const createConditionRenamePattern: Ref<RenamePattern> = ref({
 function openCreateDialog() {
   createConditionId.value = -1;
   createConditionOptions.value = {
+    name: "",
     directoryId: directoryId,
     enabled: true,
+    priority: 0,
     type: WatchType.All,
     useRegExp: false,
     pattern: "",
@@ -396,8 +413,10 @@ watch(
   (id) => {
     if (id === -1) {
       createConditionOptions.value = {
+        name: "",
         directoryId: directoryId,
         enabled: true,
+        priority: 0,
         type: WatchType.All,
         useRegExp: false,
         pattern: "",

@@ -1,5 +1,6 @@
 export type WatchDirectory = {
   id: number;
+  name: string;
   enabled: boolean;
   path: string;
   recursive: boolean;
@@ -10,8 +11,10 @@ export type WatchDirectory = {
 
 export type WatchCondition = {
   id: number;
+  name: string;
   directoryId: number;
   enabled: boolean;
+  priority: number;
   type: WatchType;
   useRegExp: boolean;
   pattern: string;
@@ -35,7 +38,6 @@ export type RenamePattern = {
 export type Log = {
   id: number;
   date: string;
-  time: string;
   directoryId: number;
   conditionId: number;
   message: string;

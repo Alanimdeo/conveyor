@@ -1,0 +1,30 @@
+import path from "path";
+import { readdir } from "fs/promises";
+import semver from "semver";
+import { Database } from "../modules/db";
+
+export async function alterDatabase(databasePath: string = "./database.sqlite") {
+  const db = new Database(databasePath);
+
+  const currentVersion = (await db.get<{ value: string }>("SELECT value FROM info WHERE key = 'version'")).value;
+
+  const scripts = (await readdir("./dist/alteration/scripts"))
+    .map((version) => path.basename(version, ".js"))
+    .filter((version) => semver.gt(version, currentVersion))
+    .sort(semver.compare);
+
+  if (scripts.length === 0) {
+    console.log("No database alterations needed.");
+    return;
+  }
+
+  console.log(`Found ${scripts.length} versions to upgrade to.`);
+  for (const script of scripts) {
+    console.log(`Upgrading to v${script}`);
+    const { upgrade } = await import(`./scripts/${script}`);
+    await upgrade(db);
+  }
+  // await db.run()
+}
+
+alterDatabase(process.argv[2] ? process.argv[2] : "./database.sqlite");

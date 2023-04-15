@@ -1,9 +1,21 @@
+import { existsSync, readdirSync } from "fs";
+import path from "path";
+import semver from "semver";
 import sqlite from "sqlite3";
+import { alterDatabase } from "../alteration";
 
 export class Database {
   private db: sqlite.Database;
 
-  constructor(filename: string) {
+  constructor(filename: string, create: boolean = false) {
+    if (existsSync(filename)) {
+      this.db = new sqlite.Database(filename);
+      return;
+    }
+
+    if (!create) {
+      throw new Error("Database file does not exist.");
+    }
     this.db = new sqlite.Database(filename);
   }
 
@@ -33,10 +45,12 @@ export class Database {
     return directory;
   }
 
-  async getWatchConditions(directoryId: number) {
-    const result = await this.all<WatchCondition[]>("SELECT * FROM watch_conditions WHERE directoryId=?", [
-      directoryId,
-    ]);
+  async getWatchConditions(directoryId?: number) {
+    let sql = "SELECT * FROM watch_conditions";
+    if (directoryId) {
+      sql += " WHERE directoryId=?";
+    }
+    const result = await this.all<WatchCondition[]>(sql, [directoryId]);
     return result.map(this.booleanizeWatchCondition);
   }
   async getWatchCondition(id: number) {
@@ -63,8 +77,9 @@ export class Database {
       throw new Error(`Watch directory already exists: ${directory.path}`);
     }
 
-    const sql = `INSERT INTO watch_directories (enabled, path, recursive, usePolling, interval, ignoreDotFiles) VALUES (?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO watch_directories (name, enabled, path, recursive, usePolling, interval, ignoreDotFiles) VALUES (?, ?, ?, ?, ?, ?)`;
     await this.run(sql, [
+      directory.name,
       directory.enabled,
       directory.path,
       directory.recursive,
@@ -77,8 +92,9 @@ export class Database {
     return id;
   }
   async updateWatchDirectory(id: number, directory: Omit<WatchDirectory, "id"> | WatchDirectory) {
-    const sql = `UPDATE watch_directories SET enabled=?, path=?, recursive=?, usePolling=?, interval=?, ignoreDotFiles=? WHERE id=?`;
+    const sql = `UPDATE watch_directories SET name=?, enabled=?, path=?, recursive=?, usePolling=?, interval=?, ignoreDotFiles=? WHERE id=?`;
     await this.run(sql, [
+      directory.name,
       directory.enabled,
       directory.path,
       directory.recursive,
@@ -93,10 +109,12 @@ export class Database {
   }
 
   async addWatchCondition(condition: Omit<WatchCondition, "id">) {
-    const sql = `INSERT INTO watch_conditions (directoryId, enabled, type, useRegExp, pattern, destination, renamePattern) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO watch_conditions (id, directoryId, enabled, priority, type, useRegExp, pattern, destination, renamePattern) VALUES (?, ?, ?, ?, ?, ?, ?)`;
     await this.run(sql, [
+      condition.name,
       condition.directoryId,
       condition.enabled,
+      condition.priority,
       condition.type,
       condition.useRegExp,
       condition.pattern,
@@ -105,10 +123,12 @@ export class Database {
     ]);
   }
   async updateWatchCondition(id: number, condition: Omit<WatchCondition, "id"> | WatchCondition) {
-    const sql = `UPDATE watch_conditions SET directoryId=?, enabled=?, type=?, useRegExp=?, pattern=?, destination=?, renamePattern=? WHERE id=?`;
+    const sql = `UPDATE watch_conditions SET name=?, directoryId=?, enabled=?, priority=?, type=?, useRegExp=?, pattern=?, destination=?, renamePattern=? WHERE id=?`;
     await this.run(sql, [
+      condition.name,
       condition.directoryId,
       condition.enabled,
+      condition.priority,
       condition.type,
       condition.useRegExp,
       condition.pattern,
@@ -224,7 +244,7 @@ export class Database {
         if (err) {
           reject(err);
         }
-        resolve(row as T);
+        resolve(row as unknown as T);
       });
     });
   }
@@ -232,6 +252,7 @@ export class Database {
 
 export type WatchDirectory = {
   id: number;
+  name: string;
   enabled: boolean;
   path: string;
   recursive: boolean;
@@ -243,6 +264,7 @@ export type WatchDirectory = {
 export function isWatchDirectory(obj: any): obj is Omit<WatchDirectory, "id"> {
   return (
     typeof obj.enabled === "boolean" &&
+    typeof obj.name === "string" &&
     typeof obj.path === "string" &&
     typeof obj.recursive === "boolean" &&
     typeof obj.usePolling === "boolean" &&
@@ -253,8 +275,10 @@ export function isWatchDirectory(obj: any): obj is Omit<WatchDirectory, "id"> {
 
 export type WatchCondition = {
   id: number;
+  name: string;
   directoryId: number;
   enabled: boolean;
+  priority: number;
   type: "file" | "directory" | "all";
   useRegExp: boolean;
   pattern: string;
@@ -265,7 +289,9 @@ export type WatchCondition = {
 export function isWatchCondition(obj: any): obj is Omit<WatchCondition, "id"> {
   return (
     typeof obj.directoryId === "number" &&
+    typeof obj.name === "string" &&
     typeof obj.enabled === "boolean" &&
+    typeof obj.priority === "number" &&
     (obj.type === "file" || obj.type === "directory" || obj.type === "all") &&
     typeof obj.useRegExp === "boolean" &&
     typeof obj.pattern === "string" &&
@@ -310,8 +336,8 @@ export type LogSearchOption = {
   conditionId?: number | number[];
 };
 
-export async function loadDatabase(databasePath: string = "database.sqlite") {
-  const db = new Database(databasePath);
+export async function loadDatabase(databasePath: string = "database.sqlite", create: boolean = false) {
+  const db = new Database(databasePath, create);
   await initializeTables(db);
   return db;
 }
@@ -329,21 +355,27 @@ async function initializeTables(db: Database) {
   return db;
 }
 
+function getLatestDatabaseVersion() {
+  return readdirSync(path.join(__dirname, "../alteration/scripts"))
+    .map((version) => path.basename(version, ".js"))
+    .sort(semver.rcompare)[0];
+}
+
 const createTable: {
   [table: string]: (db: Database) => Promise<Database>;
 } = {
   info: async (db: Database) => {
     await db.run("CREATE TABLE info (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
-    await db.run("INSERT INTO info (key, value) VALUES (?, ?)", ["version", "0.0.1"]);
+    await db.run("INSERT INTO info (key, value) VALUES (?, ?)", ["version", getLatestDatabaseVersion()]);
     return db;
   },
   watch_directories: async (db: Database) =>
     await db.run(
-      "CREATE TABLE watch_directories (id INTEGER PRIMARY KEY AUTOINCREMENT, enabled INTEGER NOT NULL, path TEXT NOT NULL, recursive INTEGER NOT NULL, usePolling INTEGER NOT NULL, interval INTEGER, ignoreDotFiles INTEGER NOT NULL)"
+      "CREATE TABLE watch_directories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL, path TEXT NOT NULL, recursive INTEGER NOT NULL, usePolling INTEGER NOT NULL, interval INTEGER, ignoreDotFiles INTEGER NOT NULL)"
     ),
   watch_conditions: async (db: Database) =>
     await db.run(
-      "CREATE TABLE watch_conditions (id INTEGER PRIMARY KEY AUTOINCREMENT, directoryId INTEGER NOT NULL, enabled INTEGER NOT NULL, type TEXT NOT NULL, useRegExp INTEGER NOT NULL, pattern TEXT NOT NULL, destination TEXT NOT NULL, renamePattern TEXT, FOREIGN KEY(directoryId) REFERENCES watch_directories(id))"
+      "CREATE TABLE watch_conditions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', directoryId INTEGER NOT NULL, enabled INTEGER NOT NULL, priority INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL, useRegExp INTEGER NOT NULL, pattern TEXT NOT NULL, destination TEXT NOT NULL, renamePattern TEXT, FOREIGN KEY(directoryId) REFERENCES watch_directories(id))"
     ),
   logs: async (db: Database) =>
     await db.run(

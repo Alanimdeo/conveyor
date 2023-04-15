@@ -10,7 +10,7 @@
       <template #header>
         <div class="card-header">
           <div>
-            <span class="folder-id">폴더 #{{ directory.id }}</span>
+            <span class="folder-id">{{ directory.name || "폴더 #" + directory.id }}</span>
             <ElTag v-if="directory.enabled" type="success">사용 중</ElTag>
             <ElTag v-else type="danger">비활성화</ElTag>
           </div>
@@ -30,6 +30,9 @@
 
   <ElDialog v-model="createDialog" title="폴더 생성" style="max-width: 560px; width: 100%">
     <ElForm label-position="left" :model="createDirectoryOptions">
+      <ElFormItem label="폴더 이름">
+        <ElInput v-model="createDirectoryOptions.name" />
+      </ElFormItem>
       <ElFormItem label="활성화">
         <ElSwitch v-model="createDirectoryOptions.enabled" />
       </ElFormItem>
@@ -90,6 +93,7 @@ import RemoveWatchDirectoryDialog from "@/components/RemoveWatchDirectoryDialog.
 const router = useRouter();
 const currentDirectoryId = ref(0);
 const createDirectoryOptions: Ref<Omit<WatchDirectory, "id">> = ref({
+  name: "",
   enabled: true,
   path: "",
   recursive: false,
