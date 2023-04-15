@@ -96,7 +96,7 @@ const createDirectoryOptions: Ref<Omit<WatchDirectory, "id">> = ref({
   name: "",
   enabled: true,
   path: "",
-  recursive: false,
+  recursive: true,
   usePolling: false,
   interval: 5000,
   ignoreDotFiles: true,
@@ -111,7 +111,7 @@ async function openCreateDialog() {
   createDirectoryOptions.value.recursive = true;
   createDirectoryOptions.value.usePolling = false;
   createDirectoryOptions.value.interval = 5000;
-  createDirectoryOptions.value.ignoreDotFiles = false;
+  createDirectoryOptions.value.ignoreDotFiles = true;
 
   createDialog.value = true;
 }

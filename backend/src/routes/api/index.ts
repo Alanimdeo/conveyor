@@ -13,6 +13,10 @@ export type ConveyorRequest = Request & {
 
 const router = Router();
 
+router.get("/db-version", (req: ConveyorRequest, res) => {
+  res.send(req.db!.version);
+});
+
 router.use(watchDirectoryRouter);
 router.use(watchConditionRouter);
 router.use(logRouter);

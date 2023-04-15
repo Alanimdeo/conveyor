@@ -20,16 +20,22 @@
       </ElCol>
     </ElRow>
   </div>
+
+  <div class="footer">
+    <span class="small gray">Conveyor v{{ conveyorVersion }}, Conveyor DB v{{ dbVersion }}</span>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { useHeaderStore } from "@/stores/header";
-import type { ElStatistic } from "element-plus";
 
 const headerStore = useHeaderStore();
 
 const watchDirectories = await fetch("/api/watch-directory/count").then((res) => res.json());
 const watchConditions = await fetch("/api/watch-condition/count").then((res) => res.json());
+
+const conveyorVersion = __VERSION__;
+const dbVersion = await fetch("/api/db-version").then((res) => res.text());
 </script>
 
 <style scoped>
@@ -50,7 +56,16 @@ const watchConditions = await fetch("/api/watch-condition/count").then((res) => 
 .big {
   font-size: 3em;
 }
+.small {
+  font-size: 0.8em;
+}
 .gray {
   color: #8d9095;
+}
+.footer {
+  position: absolute;
+  bottom: 1%;
+  width: 100%;
+  text-align: center;
 }
 </style>

@@ -4,9 +4,11 @@ import semver from "semver";
 import sqlite from "sqlite3";
 
 export class Database {
+  version: string;
   private db: sqlite.Database;
 
   constructor(filename: string, create: boolean = false) {
+    this.version = getLatestDatabaseVersion();
     if (existsSync(filename)) {
       this.db = new sqlite.Database(filename);
       return;
@@ -348,7 +350,7 @@ export type LogSearchOption = {
   conditionId?: number | number[];
 };
 
-export async function loadDatabase(databasePath: string = "database.sqlite", create: boolean = false) {
+export async function loadDatabase(databasePath: string = "/conveyor/config/database.sqlite", create: boolean = false) {
   const db = new Database(databasePath, create);
   await initializeTables(db);
   return db;
@@ -383,14 +385,14 @@ const createTable: {
   },
   watch_directories: async (db: Database) =>
     await db.run(
-      "CREATE TABLE watch_directories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL, path TEXT NOT NULL, recursive INTEGER NOT NULL, usePolling INTEGER NOT NULL, interval INTEGER, ignoreDotFiles INTEGER NOT NULL)"
+      "CREATE TABLE watch_directories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 1, path TEXT NOT NULL, recursive INTEGER NOT NULL DEFAULT 1, usePolling INTEGER NOT NULL DEFAULT 0, interval INTEGER, ignoreDotFiles INTEGER NOT NULL DEFAULT 1)"
     ),
   watch_conditions: async (db: Database) =>
     await db.run(
-      "CREATE TABLE watch_conditions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', directoryId INTEGER NOT NULL, enabled INTEGER NOT NULL, priority INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL, useRegExp INTEGER NOT NULL, pattern TEXT NOT NULL, destination TEXT NOT NULL, renamePattern TEXT, FOREIGN KEY(directoryId) REFERENCES watch_directories(id))"
+      "CREATE TABLE watch_conditions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', directoryId INTEGER NOT NULL, enabled INTEGER NOT NULL DEFAULT 1, priority INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL DEFAULT 'all', useRegExp INTEGER NOT NULL DEFAULT 0, pattern TEXT NOT NULL, destination TEXT NOT NULL, renamePattern TEXT, FOREIGN KEY(directoryId) REFERENCES watch_directories(id))"
     ),
   logs: async (db: Database) =>
     await db.run(
-      "CREATE TABLE logs (id INTEGER PRIMARY KEY AUTOINCREMENT, date INTEGER NOT NULL, directoryId INTEGER NOT NULL, conditionId INTEGER NOT NULL, message TEXT NOT NULL, FOREIGN KEY(directoryId) REFERENCES watch_directories(id), FOREIGN KEY(conditionId) REFERENCES watch_conditions(id))"
+      "CREATE TABLE logs (id INTEGER PRIMARY KEY AUTOINCREMENT, date INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000), directoryId INTEGER NOT NULL, conditionId INTEGER NOT NULL, message TEXT NOT NULL, FOREIGN KEY(directoryId) REFERENCES watch_directories(id), FOREIGN KEY(conditionId) REFERENCES watch_conditions(id))"
     ),
 };

@@ -389,7 +389,7 @@ const createConditionRenamePattern: Ref<RenamePattern> = ref({
   useRegExp: false,
   pattern: "",
   replaceValue: "",
-  excludeExtension: false,
+  excludeExtension: true,
 });
 
 function openCreateDialog() {
@@ -409,7 +409,7 @@ function openCreateDialog() {
     useRegExp: false,
     pattern: "",
     replaceValue: "",
-    excludeExtension: false,
+    excludeExtension: true,
   };
   createConditionDialog.value = true;
 }
@@ -433,7 +433,7 @@ watch(
         useRegExp: false,
         pattern: "",
         replaceValue: "",
-        excludeExtension: false,
+        excludeExtension: true,
       };
     } else {
       createConditionOptions.value = Object.assign(

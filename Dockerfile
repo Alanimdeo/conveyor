@@ -1,6 +1,8 @@
-FROM node:18-alpine
+FROM node:18
 
 WORKDIR /conveyor
+
+ENV LC_ALL C.UTF-8
 
 COPY . .
 

@@ -38,4 +38,7 @@ export default defineConfig({
       },
     },
   },
+  define: {
+    __VERSION__: JSON.stringify(require("./package.json").version),
+  },
 });
