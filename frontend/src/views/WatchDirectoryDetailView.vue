@@ -13,6 +13,7 @@
           type="primary"
           :icon="Check"
           @click="saveWatchDirectory()"
+          :loading="savingWatchDirectory"
           :disabled="isEqual(watchDirectoryInitial, watchDirectory)"
         >
           저장
@@ -304,7 +305,10 @@ if (watchDirectoryResponse.error) {
 const watchDirectoryInitial: Ref<WatchDirectory> = ref(Object.assign({}, watchDirectoryResponse));
 const watchDirectory: Ref<WatchDirectory> = ref(watchDirectoryResponse);
 
+const savingWatchDirectory = ref(false);
+
 async function saveWatchDirectory() {
+  savingWatchDirectory.value = true;
   const response = await fetch("/api/watch-directory/" + directoryId, {
     method: "PATCH",
     headers: {
@@ -320,10 +324,12 @@ async function saveWatchDirectory() {
   });
   if (response.error) {
     ElMessage.error("감시 폴더를 저장하지 못했습니다.");
+    savingWatchDirectory.value = false;
     return;
   }
   watchDirectoryInitial.value = Object.assign({}, watchDirectory.value);
   ElMessage.success("감시 폴더를 저장했습니다.");
+  savingWatchDirectory.value = false;
 }
 
 const watchConditions: Ref<WatchCondition[]> = ref([]);

@@ -1,6 +1,6 @@
 <template>
   <ElTable :data="logs" v-infinite-scroll="load" table-layout="auto">
-    <ElTableColumn prop="date" label="날짜" />
+    <ElTableColumn prop="date" label="날짜" width="200" />
     <ElTableColumn prop="directoryName" label="폴더" />
     <ElTableColumn prop="conditionName" label="감시" />
     <ElTableColumn prop="message" label="내용" />
