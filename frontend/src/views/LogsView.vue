@@ -1,10 +1,9 @@
 <template>
-  <!-- <ElTableV2></ElTableV2> -->
-  <ElTable :data="logs" v-infinite-scroll="load">
-    <ElTableColumn prop="date" label="날짜" fixed="left" width="200" />
-    <ElTableColumn prop="directoryId" label="폴더 ID" fixed="left" width="100" />
-    <ElTableColumn prop="conditionId" label="조건 ID" fixed="left" width="100" />
-    <ElTableColumn prop="message" label="내용" fixed="left" />
+  <ElTable :data="logs" v-infinite-scroll="load" table-layout="auto">
+    <ElTableColumn prop="date" label="날짜" />
+    <ElTableColumn prop="directoryName" label="폴더" />
+    <ElTableColumn prop="conditionName" label="감시" />
+    <ElTableColumn prop="message" label="내용" />
   </ElTable>
 </template>
 
@@ -13,35 +12,35 @@ import { ref } from "vue";
 import type { Ref } from "vue";
 import type { Log, LogSearchOption, WatchCondition, WatchDirectory } from "@/types";
 
-// const watchDirectories: Ref<WatchDirectory[]> = ref([]);
-// await fetch("/api/watch-directory")
-//   .then(async (res) => {
-//     try {
-//       return await res.json();
-//     } catch (e) {
-//       return { error: "서버에서 응답을 받지 못했습니다." };
-//     }
-//   })
-//   .then((res) => {
-//     if (res.success) {
-//       watchDirectories.value = res;
-//     }
-//   });
+const watchDirectories: Ref<WatchDirectory[]> = ref([]);
+await fetch("/api/watch-directory")
+  .then(async (res) => {
+    try {
+      return await res.json();
+    } catch (e) {
+      return { error: "서버에서 응답을 받지 못했습니다." };
+    }
+  })
+  .then((res) => {
+    if (!res.error) {
+      watchDirectories.value = res;
+    }
+  });
 
-// const watchConditions: Ref<WatchCondition[]> = ref([]);
-// await fetch("/api/watch-condition")
-//   .then(async (res) => {
-//     try {
-//       return await res.json();
-//     } catch (e) {
-//       return { error: "서버에서 응답을 받지 못했습니다." };
-//     }
-//   })
-//   .then((res) => {
-//     if (res.success) {
-//       watchConditions.value = res;
-//     }
-//   });
+const watchConditions: Ref<WatchCondition[]> = ref([]);
+await fetch("/api/watch-condition")
+  .then(async (res) => {
+    try {
+      return await res.json();
+    } catch (e) {
+      return { error: "서버에서 응답을 받지 못했습니다." };
+    }
+  })
+  .then((res) => {
+    if (!res.error) {
+      watchConditions.value = res;
+    }
+  });
 
 const logSearchOption: Ref<LogSearchOption> = ref({});
 
@@ -69,7 +68,17 @@ async function getLogCount(options?: LogSearchOption) {
     });
 }
 
-const logs: Ref<Log[]> = ref([]);
+type LogWithName = {
+  id: number;
+  date: string;
+  directoryId: number;
+  directoryName: string;
+  conditionId: number;
+  conditionName: string;
+  message: string;
+};
+
+const logs: Ref<LogWithName[]> = ref([]);
 
 async function load() {
   if (logs.value.length >= logCount.value) return;
@@ -94,6 +103,15 @@ async function load() {
     .then((res) => {
       if (!res.error) {
         res = res.filter((log: Log) => !logs.value.some((l) => l.id === log.id));
+        res = res.map((log: Log) => {
+          const directory = watchDirectories.value.find((d) => d.id === log.directoryId);
+          const condition = watchConditions.value.find((c) => c.id === log.conditionId);
+          return {
+            ...log,
+            directoryName: (directory?.name || (directory?.id ? "ID " + directory.id : null)) ?? "삭제된 폴더",
+            conditionName: (condition?.name || (condition?.id ? "ID " + condition.id : null)) ?? "삭제된 조건",
+          };
+        });
         logs.value.push(...res);
       }
     });

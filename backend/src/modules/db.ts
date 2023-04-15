@@ -2,7 +2,6 @@ import { existsSync, readdirSync } from "fs";
 import path from "path";
 import semver from "semver";
 import sqlite from "sqlite3";
-import { alterDatabase } from "../alteration";
 
 export class Database {
   private db: sqlite.Database;
@@ -77,7 +76,7 @@ export class Database {
       throw new Error(`Watch directory already exists: ${directory.path}`);
     }
 
-    const sql = `INSERT INTO watch_directories (name, enabled, path, recursive, usePolling, interval, ignoreDotFiles) VALUES (?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO watch_directories (name, enabled, path, recursive, usePolling, interval, ignoreDotFiles) VALUES (?, ?, ?, ?, ?, ?, ?)`;
     await this.run(sql, [
       directory.name,
       directory.enabled,
@@ -109,7 +108,7 @@ export class Database {
   }
 
   async addWatchCondition(condition: Omit<WatchCondition, "id">) {
-    const sql = `INSERT INTO watch_conditions (id, directoryId, enabled, priority, type, useRegExp, pattern, destination, renamePattern) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO watch_conditions (name, directoryId, enabled, priority, type, useRegExp, pattern, destination, renamePattern) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     await this.run(sql, [
       condition.name,
       condition.directoryId,
@@ -159,7 +158,6 @@ export class Database {
   async getLogs(options?: LogSearchOption) {
     let sql = "SELECT * FROM logs ORDER BY id DESC";
     const { option, params } = this.getLogCondition(options);
-    console.log(option, params);
     if (option.length) {
       sql += " " + option.join(" AND ");
     }

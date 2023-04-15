@@ -25,7 +25,9 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
 
   watcher.on("ready", () => {
     console.log(
-      `Watching folder #${watchDirectory.id}(${watchDirectory.path}) for ${watchConditions.length} conditions.`
+      `Watching ${watchDirectory.name !== "" ? watchDirectory.name : "ID " + watchDirectory.id}(${
+        watchDirectory.path
+      }) for ${watchConditions.length} conditions.`
     );
   });
 
@@ -71,16 +73,18 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
   async function getConditionMatch(file: string, type: "file" | "directory") {
     const watchConditions = await db.getWatchConditions(watchDirectory.id);
     const filename = path.basename(file);
-    const matches = watchConditions.filter((condition) => {
-      if (!condition.enabled || (condition.type !== "all" && condition.type !== type)) {
-        return false;
-      }
-      if (condition.useRegExp) {
-        return new RegExp(condition.pattern).test(filename);
-      } else {
-        return filename.includes(condition.pattern);
-      }
-    });
+    const matches = watchConditions
+      .filter((condition) => {
+        if (!condition.enabled || (condition.type !== "all" && condition.type !== type)) {
+          return false;
+        }
+        if (condition.useRegExp) {
+          return new RegExp(condition.pattern).test(filename);
+        } else {
+          return filename.includes(condition.pattern);
+        }
+      })
+      .sort();
     return matches.length !== 0 ? matches[0] : null;
   }
 
