@@ -152,28 +152,6 @@ function openRemoveDialog(id: number) {
   removeDialog.value = true;
 }
 
-// const removingDirectory = ref(false);
-// async function removeDirectory(id: number) {
-//   removingDirectory.value = true;
-//   const request = await fetch("/api/watch-directory/" + id, {
-//     method: "DELETE",
-//   }).then((res) => res.json());
-//   removeDialog.value = false;
-//   removingDirectory.value = false;
-//   if (request.success) {
-//     ElMessage({
-//       type: "success",
-//       message: "폴더를 삭제했습니다.",
-//     });
-//   } else {
-//     ElMessage({
-//       type: "error",
-//       message: h("div", null, [h("p", null, "폴더를 삭제하지 못했습니다."), h("p", null, request.error)]),
-//     });
-//   }
-//   await refreshWatchDirectories();
-// }
-
 const watchDirectories: Ref<WatchDirectory[]> = ref([]);
 async function refreshWatchDirectories() {
   const response = await fetch("/api/watch-directory").then(async (res) => {

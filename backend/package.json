@@ -1,6 +1,6 @@
 {
   "name": "conveyor-backend",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "author": "Alanimdeo <alan@imdeo.kr>",
   "private": true,
   "scripts": {
@@ -8,7 +8,7 @@
     "pretest": "tsc",
     "test": "node dist/index.js",
     "dev": "supervisor -w 'src,dist/public' -e 'ts,html' --exec yarn test",
-    "prebuild": "yarn && cd ../frontend && yarn && yarn build && cd ../backend",
+    "prebuild": "rm -rf dist && yarn && cd ../frontend && yarn && yarn build && cd ../backend",
     "build": "tsc"
   },
   "dependencies": {

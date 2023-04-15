@@ -58,7 +58,6 @@ export class Database {
   }
 
   async addWatchDirectory(directory: Omit<WatchDirectory, "id">) {
-    console.log(3);
     const existing = await this.getWatchDirectoryByPath(directory.path);
     if (existing) {
       throw new Error(`Watch directory already exists: ${directory.path}`);
@@ -123,41 +122,80 @@ export class Database {
   }
 
   async createLog(log: { directoryId: number; conditionId: number; message: string }) {
-    const sql = "INSERT INTO logs(directoryId, conditionId, message) VALUES (?, ?, ?)";
-    await this.run(sql, [log.directoryId, log.conditionId, log.message]);
+    const sql = "INSERT INTO logs(date, directoryId, conditionId, message) VALUES (?, ?, ?, ?)";
+    await this.run(sql, [Date.now(), log.directoryId, log.conditionId, log.message]);
+  }
+  async getLogCount(options?: LogSearchOption) {
+    let sql = "SELECT COUNT(*) AS count FROM logs";
+    const { option, params } = this.getLogCondition(options);
+    if (option.length) {
+      sql += " " + option.join(" AND ");
+    }
+
+    const { count } = await this.get<{ count: number }>(sql, params);
+
+    return count;
   }
   async getLogs(options?: LogSearchOption) {
-    let sql = "SELECT * FROM logs";
-    const params: any[] = [];
-    if (options) {
-      const option: string[] = [];
-      if (options.id) {
-        option.push("id=?");
-        params.push(options.id);
-      }
-      if (options.directoryId) {
-        option.push("directoryId=?");
-        params.push(options.directoryId);
-      }
-      if (options.conditionId) {
-        option.push("conditionId=?");
-        params.push(options.conditionId);
-      }
-      if (options.date) {
-        option.push("date BETWEEN ? AND ?");
-        params.push(options.date.from);
-        params.push(options.date.to);
-      }
-      if (options.limit) {
-        option.push("LIMIT ?");
-      }
-
-      // options가 비어있지 않은 객체일 때만 조건 추가
-      if (option.length > 0) {
-        sql += " WHERE " + option.join(" AND ");
-      }
+    let sql = "SELECT * FROM logs ORDER BY id DESC";
+    const { option, params } = this.getLogCondition(options);
+    console.log(option, params);
+    if (option.length) {
+      sql += " " + option.join(" AND ");
     }
-    return await this.all<Log[]>(sql, params);
+
+    const result = await this.all<Log[]>(sql, params);
+    result.map((log) => {
+      log.date = new Date(log.date);
+      return log;
+    });
+    return result;
+  }
+  private getLogCondition(options?: LogSearchOption) {
+    const option: string[] = [];
+    const params: any[] = [];
+    if (!options) {
+      return { option, params };
+    }
+    if (options.id) {
+      option.push("id=?");
+      params.push(options.id);
+    }
+    if (options.directoryId && typeof options.directoryId === "number") {
+      option.push("directoryId=?");
+      params.push(options.directoryId);
+    } else if (typeof options.directoryId === "object") {
+      const directoryId = options.directoryId.map(() => "directoryId=?");
+      option.push("(" + directoryId.join(" OR ") + ")");
+      params.push(...options.directoryId);
+    }
+    if (options.conditionId && typeof options.conditionId === "number") {
+      option.push("conditionId=?");
+      params.push(options.conditionId);
+    } else if (typeof options.conditionId === "object") {
+      const conditionId = options.conditionId.map(() => "conditionId=?");
+      option.push("(" + conditionId.join(" OR ") + ")");
+      params.push(...options.conditionId);
+    }
+    if (options.date) {
+      option.push("date BETWEEN ? AND ?");
+      params.push(options.date.from instanceof Date ? options.date.from.getTime() : options.date.from);
+      params.push(options.date.to instanceof Date ? options.date.to.getTime() : options.date.to);
+    }
+
+    if (option.length) {
+      option.unshift("WHERE");
+    }
+
+    if (options.limit) {
+      option.push("LIMIT ?");
+      params.push(options.limit);
+    }
+    if (options.offset) {
+      option.push("OFFSET ?");
+      params.push(options.offset);
+    }
+    return { option, params };
   }
 
   async get<T = unknown>(sql: string, params?: any[]) {
@@ -204,7 +242,6 @@ export type WatchDirectory = {
 
 export function isWatchDirectory(obj: any): obj is Omit<WatchDirectory, "id"> {
   return (
-    // typeof obj.id === "number" &&
     typeof obj.enabled === "boolean" &&
     typeof obj.path === "string" &&
     typeof obj.recursive === "boolean" &&
@@ -227,7 +264,6 @@ export type WatchCondition = {
 
 export function isWatchCondition(obj: any): obj is Omit<WatchCondition, "id"> {
   return (
-    // typeof obj.id === "number" &&
     typeof obj.directoryId === "number" &&
     typeof obj.enabled === "boolean" &&
     (obj.type === "file" || obj.type === "directory" || obj.type === "all") &&
@@ -256,26 +292,22 @@ export function isRenamePattern(obj: any): obj is RenamePattern {
 
 export type Log = {
   id: number;
-  date: string;
-  time: string;
+  date: Date;
   directoryId: number;
   conditionId: number;
   message: string;
 };
 
-export function getDateFromLog(log: Log) {
-  return new Date(log.date + " " + log.time);
-}
-
 export type LogSearchOption = {
   id?: number;
   limit?: number;
+  offset?: number;
   date?: {
-    from: Date;
-    to: Date;
+    from: Date | number;
+    to: Date | number;
   };
-  directoryId?: number;
-  conditionId?: number;
+  directoryId?: number | number[];
+  conditionId?: number | number[];
 };
 
 export async function loadDatabase(databasePath: string = "database.sqlite") {
@@ -300,6 +332,11 @@ async function initializeTables(db: Database) {
 const createTable: {
   [table: string]: (db: Database) => Promise<Database>;
 } = {
+  info: async (db: Database) => {
+    await db.run("CREATE TABLE info (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
+    await db.run("INSERT INTO info (key, value) VALUES (?, ?)", ["version", "0.0.1"]);
+    return db;
+  },
   watch_directories: async (db: Database) =>
     await db.run(
       "CREATE TABLE watch_directories (id INTEGER PRIMARY KEY AUTOINCREMENT, enabled INTEGER NOT NULL, path TEXT NOT NULL, recursive INTEGER NOT NULL, usePolling INTEGER NOT NULL, interval INTEGER, ignoreDotFiles INTEGER NOT NULL)"
@@ -310,6 +347,6 @@ const createTable: {
     ),
   logs: async (db: Database) =>
     await db.run(
-      "CREATE TABLE logs (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATE NOT NULL DEFAULT (date('now')), time TIME NOT NULL DEFAULT (time('now')), directoryId INTEGER NOT NULL, conditionId INTEGER NOT NULL, message TEXT NOT NULL, FOREIGN KEY(directoryId) REFERENCES watch_directories(id), FOREIGN KEY(conditionId) REFERENCES watch_conditions(id))"
+      "CREATE TABLE logs (id INTEGER PRIMARY KEY AUTOINCREMENT, date INTEGER NOT NULL, directoryId INTEGER NOT NULL, conditionId INTEGER NOT NULL, message TEXT NOT NULL, FOREIGN KEY(directoryId) REFERENCES watch_directories(id), FOREIGN KEY(conditionId) REFERENCES watch_conditions(id))"
     ),
 };

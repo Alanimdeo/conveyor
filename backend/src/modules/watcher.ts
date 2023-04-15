@@ -1,5 +1,5 @@
 import chokidar from "chokidar";
-import type { Database, WatchDirectory } from "./db";
+import { Database, WatchDirectory } from "./db";
 import path from "path";
 import { mkdir, rename } from "fs/promises";
 
@@ -18,7 +18,6 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
     ignoreInitial: true,
     persistent: true,
     depth: watchDirectory.recursive ? undefined : 0,
-    cwd: watchDirectory.path,
     usePolling: watchDirectory.usePolling,
     interval: watchDirectory.usePolling ? watchDirectory.interval : undefined,
     binaryInterval: watchDirectory.usePolling ? watchDirectory.interval : undefined,
@@ -59,10 +58,14 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
 
     await mkdir(matchedCondition.destination, { recursive: true });
     await rename(file, path.join(matchedCondition.destination, filename));
-    // if (type === "file") {
-    // } else {
-    //   await mkdir(matchedCondition.destination, { recursive: true });
-    // }
+
+    await db.createLog({
+      directoryId: watchDirectory.id,
+      conditionId: matchedCondition.id,
+      message:
+        `Moving ${originalFilename} to ${matchedCondition.destination}` +
+        (filename !== originalFilename ? ` as ${filename}` : ""),
+    });
   }
 
   async function getConditionMatch(file: string, type: "file" | "directory") {
