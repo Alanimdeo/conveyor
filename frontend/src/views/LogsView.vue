@@ -1,10 +1,19 @@
 <template>
-  <ElTable :data="logs" v-infinite-scroll="load" table-layout="auto">
+  <ElTable :data="logs" table-layout="auto">
     <ElTableColumn prop="date" label="날짜" width="200" />
     <ElTableColumn prop="directoryName" label="폴더" />
-    <ElTableColumn prop="conditionName" label="감시" />
+    <ElTableColumn prop="conditionName" label="감시 조건" />
     <ElTableColumn prop="message" label="내용" />
   </ElTable>
+  <ElPagination
+    v-model:current-page="currentPage"
+    v-model:page-size="pageSize"
+    :page-sizes="[20, 50, 100, 200]"
+    layout="sizes, prev, pager, next, jumper"
+    :total="logCount"
+    @size-change="load()"
+    @current-change="load()"
+  />
 </template>
 
 <script setup lang="ts">
@@ -80,6 +89,9 @@ type LogWithName = {
 
 const logs: Ref<LogWithName[]> = ref([]);
 
+const pageSize = ref(20);
+const currentPage = ref(1);
+
 async function load() {
   if (logs.value.length >= logCount.value) return;
   await fetch("/api/log", {
@@ -89,8 +101,8 @@ async function load() {
     },
     body: JSON.stringify({
       ...logSearchOption.value,
-      offset: logs.value.length,
-      limit: 20,
+      offset: (currentPage.value - 1) * pageSize.value,
+      limit: pageSize.value,
     }),
   })
     .then(async (res) => {
@@ -112,12 +124,13 @@ async function load() {
             conditionName: (condition?.name || (condition?.id ? "ID " + condition.id : null)) ?? "삭제된 조건",
           };
         });
-        logs.value.push(...res);
+        logs.value = res;
       }
     });
 }
 
 await getLogCount();
+await load();
 
 // const columns: Column<any>[] = [
 //   {
@@ -146,3 +159,9 @@ await getLogCount();
 //   },
 // ];
 </script>
+
+<style>
+.el-pagination {
+  justify-content: space-between;
+}
+</style>

@@ -1,0 +1,11 @@
+services:
+  conveyor:
+    image: alanimdeo/conveyor:latest
+    container_name: conveyor
+    environment:
+      - TZ=Asia/Seoul
+    ports:
+      - 3000:3000
+    volumes:
+      - ./config:/conveyor/config
+    restart: unless-stopped

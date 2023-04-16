@@ -162,10 +162,11 @@ export class Database {
   }
   async getLogCount(options?: LogSearchOption) {
     let sql = "SELECT COUNT(*) AS count FROM logs";
-    const { option, params } = this.getLogCondition(options);
+    const { option, params, suffix } = this.getLogCondition(options);
     if (option.length) {
       sql += " " + option.join(" AND ");
     }
+    sql += suffix;
 
     const { count } = await this.get<{ count: number }>(sql, params);
 
@@ -173,10 +174,13 @@ export class Database {
   }
   async getLogs(options?: LogSearchOption) {
     let sql = "SELECT * FROM logs ORDER BY id DESC";
-    const { option, params } = this.getLogCondition(options);
+    const { option, params, suffix } = this.getLogCondition(options);
     if (option.length) {
       sql += " " + option.join(" AND ");
     }
+    sql += suffix;
+
+    console.log(sql, params);
 
     const result = await this.all<Log[]>(sql, params);
     result.map((log) => {
@@ -221,15 +225,16 @@ export class Database {
       option.unshift("WHERE");
     }
 
+    let suffix = "";
     if (options.limit) {
-      option.push("LIMIT ?");
+      suffix += " LIMIT ?";
       params.push(options.limit);
     }
     if (options.offset) {
-      option.push("OFFSET ?");
+      suffix += " OFFSET ?";
       params.push(options.offset);
     }
-    return { option, params };
+    return { option, params, suffix };
   }
 
   async get<T = unknown>(sql: string, params?: any[]) {
