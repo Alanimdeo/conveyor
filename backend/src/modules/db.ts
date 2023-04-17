@@ -180,8 +180,6 @@ export class Database {
     }
     sql += suffix;
 
-    console.log(sql, params);
-
     const result = await this.all<Log[]>(sql, params);
     result.map((log) => {
       log.date = new Date(log.date);

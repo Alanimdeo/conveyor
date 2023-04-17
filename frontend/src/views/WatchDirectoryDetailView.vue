@@ -139,7 +139,7 @@
                 </div>
                 <div>
                   <span>이동 경로: </span>
-                  <span>{{ condition.destination || "없음" }}</span>
+                  <span>{{ condition.destination === watchDirectory.path ? "이동 안 함" : condition.destination }}</span>
                 </div>
               </div>
 
@@ -225,7 +225,10 @@
           있습니다.
         </span>
       </ElAlert>
-      <ElFormItem label="이동 경로">
+      <ElFormItem label="이동 안 함">
+        <ElSwitch v-model="noMove" />
+      </ElFormItem>
+      <ElFormItem v-if="!noMove" label="이동 경로">
         <ElInput v-model="createConditionOptions.destination" />
       </ElFormItem>
       <ElFormItem label="이름 변경 규칙">
@@ -384,6 +387,7 @@ const createConditionOptions: Ref<Omit<WatchCondition, "id">> = ref({
   pattern: "",
   destination: "",
 });
+const noMove = ref(false);
 const createConditionOptionsHasRenamePattern = ref(false);
 const createConditionRenamePattern: Ref<RenamePattern> = ref({
   useRegExp: false,
@@ -404,6 +408,7 @@ function openCreateDialog() {
     pattern: "",
     destination: "",
   };
+  noMove.value = false;
   createConditionOptionsHasRenamePattern.value = false;
   createConditionRenamePattern.value = {
     useRegExp: false,
@@ -428,6 +433,7 @@ watch(
         pattern: "",
         destination: "",
       };
+      noMove.value = false;
       createConditionOptionsHasRenamePattern.value = false;
       createConditionRenamePattern.value = {
         useRegExp: false,
@@ -440,6 +446,7 @@ watch(
         {},
         watchConditions.value.find((condition) => condition.id === id)
       );
+      noMove.value = createConditionOptions.value.destination === watchDirectory.value.path;
       if (createConditionOptions.value.renamePattern) {
         createConditionRenamePattern.value = Object.assign({}, createConditionOptions.value.renamePattern);
         createConditionOptionsHasRenamePattern.value = true;
@@ -462,6 +469,7 @@ async function createCondition() {
       },
       body: JSON.stringify({
         ...createConditionOptions.value,
+        destination: noMove.value ? watchDirectory.value.path : createConditionOptions.value.destination,
         renamePattern: createConditionOptionsHasRenamePattern.value ? createConditionRenamePattern.value : undefined,
       }),
     }
