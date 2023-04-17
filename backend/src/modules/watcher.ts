@@ -53,20 +53,36 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
         : matchedCondition.renamePattern.pattern;
       filename = filename.replace(pattern, matchedCondition.renamePattern.replaceValue) + extension;
     }
-    console.log(
-      `Moving ${originalFilename} to ${matchedCondition.destination}` +
-        (filename !== originalFilename ? ` as ${filename}` : "")
-    );
+
+    let logMessage = "";
+    if (watchDirectory.path === matchedCondition.destination && filename === originalFilename) {
+      logMessage = `Skipping ${originalFilename} as it is already in the destination folder.`;
+
+      console.log(logMessage);
+      await db.createLog({
+        directoryId: watchDirectory.id,
+        conditionId: matchedCondition.id,
+        message: logMessage,
+      });
+      return;
+    }
+    if (watchDirectory.path === matchedCondition.destination) {
+      logMessage = `Renaming ${originalFilename} to ${filename}`;
+    } else {
+      logMessage = `Moving ${originalFilename} to ${matchedCondition.destination}`;
+      if (filename !== originalFilename) {
+        logMessage += ` as ${filename}`;
+      }
+    }
 
     await mkdir(matchedCondition.destination, { recursive: true });
     await rename(file, path.join(matchedCondition.destination, filename));
 
+    console.log(logMessage);
     await db.createLog({
       directoryId: watchDirectory.id,
       conditionId: matchedCondition.id,
-      message:
-        `Moving ${originalFilename} to ${matchedCondition.destination}` +
-        (filename !== originalFilename ? ` as ${filename}` : ""),
+      message: logMessage,
     });
   }
 
@@ -84,7 +100,6 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
           return filename.includes(condition.pattern);
         }
       })
-      // 작은 것부터 정렬
       .sort((a, b) => a.priority - b.priority);
     return matches.length !== 0 ? matches[0] : null;
   }
