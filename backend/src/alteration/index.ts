@@ -29,4 +29,4 @@ export async function alterDatabase(databasePath: string = CONVEYOR_DEFAULT_DATA
   // await db.run()
 }
 
-alterDatabase(process.argv[2] ? process.argv[2] : "./database.sqlite");
+alterDatabase(process.argv[2] ? process.argv[2] : undefined);
