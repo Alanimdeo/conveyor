@@ -357,7 +357,9 @@ export type LogSearchOption = {
   conditionId?: number | number[];
 };
 
-export async function loadDatabase(databasePath: string = "/conveyor/config/database.sqlite", create: boolean = false) {
+export const CONVEYOR_DEFAULT_DATABASE_PATH = "/conveyor/config/database.sqlite";
+
+export async function loadDatabase(databasePath: string = CONVEYOR_DEFAULT_DATABASE_PATH, create: boolean = false) {
   const db = new Database(databasePath, create);
   await initializeTables(db);
   return db;

@@ -1,9 +1,9 @@
 import path from "path";
 import { cp, readdir } from "fs/promises";
 import semver from "semver";
-import { Database } from "../modules/db";
+import { CONVEYOR_DEFAULT_DATABASE_PATH, Database } from "../modules/db";
 
-export async function alterDatabase(databasePath: string = "./database.sqlite") {
+export async function alterDatabase(databasePath: string = CONVEYOR_DEFAULT_DATABASE_PATH) {
   const db = new Database(databasePath);
 
   const currentVersion = (await db.get<{ value: string }>("SELECT value FROM info WHERE key = 'version'")).value;
