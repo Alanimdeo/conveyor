@@ -166,8 +166,10 @@ export class Database {
     let sql = "SELECT COUNT(*) AS count FROM logs";
     const { option, params, suffix } = this.getLogCondition(options);
     if (option.length) {
-      sql += " " + option.join(" AND ");
+      sql += " WHERE ";
+      sql += option.join(" AND ");
     }
+    sql += " ORDER BY id DESC";
     sql += suffix;
 
     const { count } = await this.get<{ count: number }>(sql, params);
@@ -175,12 +177,16 @@ export class Database {
     return count;
   }
   async getLogs(options?: LogSearchOption) {
-    let sql = "SELECT * FROM logs ORDER BY id DESC";
+    let sql = "SELECT * FROM logs";
     const { option, params, suffix } = this.getLogCondition(options);
     if (option.length) {
-      sql += " " + option.join(" AND ");
+      sql += " WHERE ";
+      sql += option.join(" AND ");
     }
+    sql += " ORDER BY id DESC";
     sql += suffix;
+
+    console.log(sql);
 
     const result = await this.all<Log[]>(sql, params);
     result.map((log) => {
@@ -219,10 +225,6 @@ export class Database {
       option.push("date BETWEEN ? AND ?");
       params.push(options.date.from instanceof Date ? options.date.from.getTime() : options.date.from);
       params.push(options.date.to instanceof Date ? options.date.to.getTime() : options.date.to);
-    }
-
-    if (option.length) {
-      option.unshift("WHERE");
     }
 
     let suffix = "";
@@ -353,8 +355,8 @@ export type LogSearchOption = {
     from: Date | number;
     to: Date | number;
   };
-  directoryId?: number | number[];
-  conditionId?: number | number[];
+  directoryId?: number[];
+  conditionId?: number[];
 };
 
 export const CONVEYOR_DEFAULT_DATABASE_PATH = "/conveyor/config/database.sqlite";

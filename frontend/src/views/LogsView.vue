@@ -1,4 +1,39 @@
 <template>
+  <div class="top-bar">
+    <div>
+      <ElSelect v-model="logSearchOption.directoryId" multiple placeholder="폴더를 선택하세요.">
+        <ElOption
+          v-for="directory in watchDirectories"
+          :key="directory.id"
+          :label="directory.name"
+          :value="directory.id"
+        />
+      </ElSelect>
+    </div>
+    <div>
+      <ElSelect v-model="logSearchOption.conditionId" multiple placeholder="조건을 선택하세요.">
+        <ElOption
+          v-for="(condition, index) in watchConditions.filter((c) =>
+            logSearchOption.directoryId?.includes(c.directoryId)
+          )"
+          :key="condition.id"
+          :label="`${watchDirectories.find((d) => d.id == condition.directoryId)?.name} - ${
+            condition.name || '조건 ' + (index + 1)
+          }`"
+          :value="condition.id"
+        />
+      </ElSelect>
+    </div>
+    <div>
+      <ElDatePicker
+        v-model="logSearchDate"
+        type="datetimerange"
+        range-separator="~"
+        start-placeholder="시작"
+        end-placeholder="끝"
+      />
+    </div>
+  </div>
   <ElTable :data="logs" table-layout="auto">
     <ElTableColumn prop="date" label="날짜" width="200" />
     <ElTableColumn prop="directoryName" label="폴더" />
@@ -17,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import type { Ref } from "vue";
 import type { Log, LogSearchOption, WatchCondition, WatchDirectory } from "@/types";
 
@@ -51,7 +86,27 @@ await fetch("/api/watch-condition")
     }
   });
 
-const logSearchOption: Ref<LogSearchOption> = ref({});
+const logSearchOption: Ref<LogSearchOption> = ref({
+  conditionId: [],
+  directoryId: [],
+});
+const logSearchDate = ref<[Date, Date]>([
+  new Date(new Date().setHours(0, 0, 0, 0)),
+  new Date(new Date().setHours(23, 59, 59, 999)),
+]);
+
+watch(
+  () => logSearchOption.value.directoryId,
+  async () => {
+    logSearchOption.value.conditionId = logSearchOption.value.conditionId?.filter((id) =>
+      logSearchOption.value.directoryId?.includes(watchConditions.value.find((c) => c.id === id)?.directoryId ?? 0)
+    );
+  }
+);
+watch(
+  () => [logSearchOption.value.conditionId, logSearchDate.value],
+  async () => await load()
+);
 
 const logCount = ref(0);
 
@@ -93,14 +148,26 @@ const pageSize = ref(20);
 const currentPage = ref(1);
 
 async function load() {
-  if (logs.value.length >= logCount.value) return;
+  const option: LogSearchOption = {
+    date: {
+      from: logSearchDate.value[0].getTime(),
+      to: logSearchDate.value[1].getTime(),
+    },
+  };
+  if (logSearchOption.value.directoryId?.length) {
+    option.directoryId = logSearchOption.value.directoryId;
+  }
+  if (logSearchOption.value.conditionId?.length) {
+    option.conditionId = logSearchOption.value.conditionId;
+  }
+  await getLogCount(option);
   await fetch("/api/log", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      ...logSearchOption.value,
+      ...option,
       offset: (currentPage.value - 1) * pageSize.value,
       limit: pageSize.value,
     }),
@@ -114,7 +181,6 @@ async function load() {
     })
     .then((res) => {
       if (!res.error) {
-        res = res.filter((log: Log) => !logs.value.some((l) => l.id === log.id));
         res = res.map((log: Log) => {
           const directory = watchDirectories.value.find((d) => d.id === log.directoryId);
           const condition = watchConditions.value.find((c) => c.id === log.conditionId);
@@ -129,39 +195,22 @@ async function load() {
     });
 }
 
-await getLogCount();
 await load();
-
-// const columns: Column<any>[] = [
-//   {
-//     key: "date",
-//     title: "날짜",
-//     dataKey: "date",
-//     width: 150,
-//     fixed: TableV2FixedDir.LEFT,
-//     cellRenderer: ({ cellData: date }) => <span>{{ date }}</span>,
-//   },
-//   {
-//     key: "directoryId",
-//     title: "폴더 ID",
-//     dataKey: "directoryId",
-//     width: 150,
-//     fixed: TableV2FixedDir.LEFT,
-//     cellRenderer: ({ cellData: directoryId }) => <span>{{ directoryId }}</span>,
-//   },
-//   {
-//     key: "conditionId",
-//     title: "조건 ID",
-//     dataKey: "conditionId",
-//     width: 150,
-//     fixed: TableV2FixedDir.LEFT,
-//     cellRenderer: ({ cellData: conditionId }) => <span>{{ conditionId }}</span>,
-//   },
-// ];
 </script>
 
 <style>
 .el-pagination {
   justify-content: space-between;
+}
+</style>
+
+<style scoped>
+.top-bar {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 1rem;
 }
 </style>

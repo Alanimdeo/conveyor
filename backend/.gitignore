@@ -8,3 +8,4 @@ test
 *.sqlite
 *.sqlite-journal
 *.db
+*.bak

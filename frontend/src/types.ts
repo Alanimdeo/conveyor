@@ -47,10 +47,11 @@ export type Log = {
 export type LogSearchOption = {
   id?: number;
   limit?: number;
+  offset?: number;
   date?: {
-    from: Date;
-    to: Date;
+    from: Date | number;
+    to: Date | number;
   };
-  directoryId?: number;
-  conditionId?: number;
+  directoryId?: number[];
+  conditionId?: number[];
 };
