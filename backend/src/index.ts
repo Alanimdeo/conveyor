@@ -8,12 +8,16 @@ import { loadDatabase } from "./modules/db";
 import { initializeWatchers } from "./modules/watcher";
 import { router as apiRouter } from "./routes/api";
 import type { ConveyorRequest } from "./routes/api";
+import { alterDatabase } from "./alteration";
 
 dotenv.config();
 
 async function main() {
   const server = express();
   const port = process.env.PORT || 3000;
+
+  console.log("Checking database updates...");
+  await alterDatabase(process.env.DB_FILE);
 
   const db = await loadDatabase(process.env.DB_FILE, true);
   const watchers = await initializeWatchers(db);

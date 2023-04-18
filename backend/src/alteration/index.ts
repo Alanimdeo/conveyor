@@ -1,5 +1,5 @@
 import path from "path";
-import { readdir } from "fs/promises";
+import { cp, readdir } from "fs/promises";
 import semver from "semver";
 import { Database } from "../modules/db";
 
@@ -20,6 +20,8 @@ export async function alterDatabase(databasePath: string = "./database.sqlite") 
 
   console.log(`Found ${scripts.length} versions to upgrade to.`);
   for (const script of scripts) {
+    console.log(`Backing up database to ${databasePath}.${currentVersion}.bak`);
+    await cp(databasePath, `${databasePath}.${currentVersion}.bak`);
     console.log(`Upgrading to v${script}`);
     const { upgrade } = await import(`./scripts/${script}`);
     await upgrade(db);
