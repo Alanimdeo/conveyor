@@ -124,7 +124,7 @@ export class Database {
   }
 
   async addWatchCondition(condition: Omit<WatchCondition, "id">) {
-    const sql = `INSERT INTO watch_conditions (name, directoryId, enabled, priority, type, useRegExp, pattern, destination, renamePattern) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO watch_conditions (name, directoryId, enabled, priority, type, useRegExp, pattern, destination, delay, renamePattern) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     await this.run(sql, [
       condition.name,
       condition.directoryId,
@@ -134,11 +134,12 @@ export class Database {
       condition.useRegExp,
       condition.pattern,
       condition.destination,
+      condition.delay,
       condition.renamePattern ? JSON.stringify(condition.renamePattern) : null,
     ]);
   }
   async updateWatchCondition(id: number, condition: Omit<WatchCondition, "id"> | WatchCondition) {
-    const sql = `UPDATE watch_conditions SET name=?, directoryId=?, enabled=?, priority=?, type=?, useRegExp=?, pattern=?, destination=?, renamePattern=? WHERE id=?`;
+    const sql = `UPDATE watch_conditions SET name=?, directoryId=?, enabled=?, priority=?, type=?, useRegExp=?, pattern=?, destination=?, delay=?, renamePattern=? WHERE id=?`;
     await this.run(sql, [
       condition.name,
       condition.directoryId,
@@ -148,6 +149,7 @@ export class Database {
       condition.useRegExp,
       condition.pattern,
       condition.destination,
+      condition.delay,
       condition.renamePattern ? JSON.stringify(condition.renamePattern) : null,
       id,
     ]);
@@ -300,6 +302,7 @@ export type WatchCondition = {
   useRegExp: boolean;
   pattern: string;
   destination: string;
+  delay: number;
   renamePattern?: RenamePattern;
 };
 
@@ -313,6 +316,7 @@ export function isWatchCondition(obj: any): obj is Omit<WatchCondition, "id"> {
     typeof obj.useRegExp === "boolean" &&
     typeof obj.pattern === "string" &&
     typeof obj.destination === "string" &&
+    typeof obj.delay === "number" &&
     (obj.renamePattern === undefined || isRenamePattern(obj.renamePattern))
   );
 }
@@ -392,7 +396,7 @@ const createTable: {
     ),
   watch_conditions: async (db: Database) =>
     await db.run(
-      "CREATE TABLE watch_conditions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', directoryId INTEGER NOT NULL, enabled INTEGER NOT NULL DEFAULT 1, priority INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL DEFAULT 'all', useRegExp INTEGER NOT NULL DEFAULT 0, pattern TEXT NOT NULL, destination TEXT NOT NULL, renamePattern TEXT, FOREIGN KEY(directoryId) REFERENCES watch_directories(id))"
+      "CREATE TABLE watch_conditions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', directoryId INTEGER NOT NULL, enabled INTEGER NOT NULL DEFAULT 1, priority INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL DEFAULT 'all', useRegExp INTEGER NOT NULL DEFAULT 0, pattern TEXT NOT NULL, destination TEXT NOT NULL, delay INTEGER NOT NULL DEFAULT 0, renamePattern TEXT, FOREIGN KEY(directoryId) REFERENCES watch_directories(id))"
     ),
   logs: async (db: Database) =>
     await db.run(

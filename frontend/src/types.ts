@@ -19,6 +19,7 @@ export type WatchCondition = {
   useRegExp: boolean;
   pattern: string;
   destination: string;
+  delay: number;
   renamePattern?: RenamePattern;
 };
 

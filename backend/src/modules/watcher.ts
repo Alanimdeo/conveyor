@@ -5,6 +5,8 @@ import { mkdir, rename } from "fs/promises";
 
 export const ignoreDotFiles = /(^|[\/\\])\../;
 
+const wait = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export async function initializeWatcher(watchDirectory: WatchDirectory, db: Database) {
   if (!watchDirectory.enabled) {
     throw new Error("Not enabled.");
@@ -73,6 +75,10 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
       if (filename !== originalFilename) {
         logMessage += ` as ${filename}`;
       }
+    }
+
+    if (matchedCondition.delay > 0) {
+      await wait(matchedCondition.delay);
     }
 
     await mkdir(matchedCondition.destination, { recursive: true });

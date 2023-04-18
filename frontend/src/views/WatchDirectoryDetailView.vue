@@ -139,7 +139,13 @@
                 </div>
                 <div>
                   <span>이동 경로: </span>
-                  <span>{{ condition.destination === watchDirectory.path ? "이동 안 함" : condition.destination }}</span>
+                  <span>{{
+                    condition.destination === watchDirectory.path ? "이동 안 함" : condition.destination
+                  }}</span>
+                </div>
+                <div>
+                  <span>이동 지연: </span>
+                  <span>{{ condition.delay }} ms</span>
                 </div>
               </div>
 
@@ -230,6 +236,9 @@
       </ElFormItem>
       <ElFormItem v-if="!noMove" label="이동 경로">
         <ElInput v-model="createConditionOptions.destination" />
+      </ElFormItem>
+      <ElFormItem label="이동 지연">
+        <ElInputNumber v-model="createConditionOptions.delay" :min="0" />
       </ElFormItem>
       <ElFormItem label="이름 변경 규칙">
         <ElSwitch v-model="createConditionOptionsHasRenamePattern" />
@@ -386,6 +395,7 @@ const createConditionOptions: Ref<Omit<WatchCondition, "id">> = ref({
   useRegExp: false,
   pattern: "",
   destination: "",
+  delay: 0,
 });
 const noMove = ref(false);
 const createConditionOptionsHasRenamePattern = ref(false);
@@ -407,6 +417,7 @@ function openCreateDialog() {
     useRegExp: false,
     pattern: "",
     destination: "",
+    delay: 0,
   };
   noMove.value = false;
   createConditionOptionsHasRenamePattern.value = false;
@@ -432,6 +443,7 @@ watch(
         useRegExp: false,
         pattern: "",
         destination: "",
+        delay: 0,
       };
       noMove.value = false;
       createConditionOptionsHasRenamePattern.value = false;
