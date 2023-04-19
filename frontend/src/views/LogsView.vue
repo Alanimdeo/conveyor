@@ -31,7 +31,11 @@
         range-separator="~"
         start-placeholder="시작"
         end-placeholder="끝"
+        :shortcuts="logDatePreset"
       />
+    </div>
+    <div>
+      <ElSwitch class="switch" v-model="logAutoRefresh" inactive-text="자동 새로고침" />
     </div>
   </div>
   <ElTable :data="logs" table-layout="auto">
@@ -90,10 +94,82 @@ const logSearchOption: Ref<LogSearchOption> = ref({
   conditionId: [],
   directoryId: [],
 });
-const logSearchDate = ref<[Date, Date]>([
-  new Date(new Date().setHours(0, 0, 0, 0)),
-  new Date(new Date().setHours(23, 59, 59, 999)),
-]);
+
+const logDatePreset = [
+  {
+    text: "오늘",
+    value: () => {
+      const from = new Date();
+      const to = new Date();
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
+      return [from, to];
+    },
+  },
+  {
+    text: "지난 7일",
+    value: () => {
+      const from = new Date();
+      const to = new Date();
+      from.setDate(from.getDate() - 7);
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
+      return [from, to];
+    },
+  },
+  {
+    text: "지난 30일",
+    value: () => {
+      const from = new Date();
+      const to = new Date();
+      from.setDate(from.getDate() - 30);
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
+      return [from, to];
+    },
+  },
+  {
+    text: "이번 달",
+    value: () => {
+      const from = new Date();
+      const to = new Date();
+      from.setDate(1);
+      from.setHours(0, 0, 0, 0);
+      to.setMonth(to.getMonth() + 1);
+      to.setDate(0);
+      to.setHours(23, 59, 59, 999);
+      return [from, to];
+    },
+  },
+  {
+    text: "지난 달",
+    value: () => {
+      const from = new Date();
+      const to = new Date();
+      from.setMonth(from.getMonth() - 1);
+      from.setDate(1);
+      from.setHours(0, 0, 0, 0);
+      to.setDate(0);
+      to.setHours(23, 59, 59, 999);
+      return [from, to];
+    },
+  },
+];
+
+const from = new Date();
+const to = new Date();
+from.setDate(from.getDate() - 7);
+from.setHours(0, 0, 0, 0);
+to.setHours(23, 59, 59, 999);
+
+const logSearchDate = ref<[Date, Date]>([from, to]);
+
+const logAutoRefresh = ref(false);
+setInterval(async () => {
+  if (logAutoRefresh.value) {
+    await load();
+  }
+}, 5000);
 
 watch(
   () => logSearchOption.value.directoryId,
@@ -201,6 +277,12 @@ await load();
 <style>
 .el-pagination {
   justify-content: space-between;
+}
+.el-switch__label {
+  font-weight: unset !important;
+}
+.el-switch__label.is-active {
+  color: var(--el-text-color-primary);
 }
 </style>
 
