@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { ConveyorRequest } from ".";
+import { forceJSON } from "../../middlewares/forceJSON";
 
 const router = Router();
 
-router.post("/log", async (req: ConveyorRequest, res) => {
+router.post("/log", forceJSON, async (req: ConveyorRequest, res) => {
   try {
     const logs = await req.db!.getLogs(req.body);
     res.json(logs);
