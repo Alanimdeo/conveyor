@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { ConveyorRequest } from ".";
 import { forceJSON } from "../../middlewares/forceJSON";
+import { isLoggedIn } from "../../middlewares/auth";
 
 const router = Router();
 
-router.post("/log", forceJSON, async (req: ConveyorRequest, res) => {
+router.post("/log", forceJSON, isLoggedIn, async (req: ConveyorRequest, res) => {
   try {
     const logs = await req.db!.getLogs(req.body);
     res.json(logs);
@@ -13,7 +14,7 @@ router.post("/log", forceJSON, async (req: ConveyorRequest, res) => {
   }
 });
 
-router.post("/log/count", async (req: ConveyorRequest, res) => {
+router.post("/log/count", isLoggedIn, async (req: ConveyorRequest, res) => {
   try {
     const count = await req.db!.getLogCount(req.body);
     res.json({ count });

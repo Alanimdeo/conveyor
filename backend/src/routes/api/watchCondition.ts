@@ -3,10 +3,11 @@ import { isWatchCondition } from "../../modules/db";
 import { initializeWatcher } from "../../modules/watcher";
 import { ConveyorRequest } from "./index";
 import { forceJSON } from "../../middlewares/forceJSON";
+import { isLoggedIn } from "../../middlewares/auth";
 
 const router = Router();
 
-router.get("/watch-condition", async (req: ConveyorRequest, res) => {
+router.get("/watch-condition", isLoggedIn, async (req: ConveyorRequest, res) => {
   try {
     res.json(await req.db!.getWatchConditions());
   } catch (err) {
@@ -14,7 +15,7 @@ router.get("/watch-condition", async (req: ConveyorRequest, res) => {
   }
 });
 
-router.get("/watch-condition/count", async (req: ConveyorRequest, res) => {
+router.get("/watch-condition/count", isLoggedIn, async (req: ConveyorRequest, res) => {
   try {
     const count = await req.db!.getWatchConditionCount();
     res.json(count);
@@ -23,7 +24,7 @@ router.get("/watch-condition/count", async (req: ConveyorRequest, res) => {
   }
 });
 
-router.get("/watch-condition/:id", async (req: ConveyorRequest, res) => {
+router.get("/watch-condition/:id", isLoggedIn, async (req: ConveyorRequest, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) {
@@ -41,7 +42,7 @@ router.get("/watch-condition/:id", async (req: ConveyorRequest, res) => {
   }
 });
 
-router.post("/watch-condition/:directoryId", forceJSON, async (req: ConveyorRequest, res) => {
+router.post("/watch-condition/:directoryId", isLoggedIn, forceJSON, async (req: ConveyorRequest, res) => {
   try {
     const directoryId = Number(req.params.directoryId);
     if (isNaN(directoryId)) {
@@ -68,7 +69,7 @@ router.post("/watch-condition/:directoryId", forceJSON, async (req: ConveyorRequ
   }
 });
 
-router.patch("/watch-condition/:id", forceJSON, async (req: ConveyorRequest, res) => {
+router.patch("/watch-condition/:id", isLoggedIn, forceJSON, async (req: ConveyorRequest, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) {
@@ -96,7 +97,7 @@ router.patch("/watch-condition/:id", forceJSON, async (req: ConveyorRequest, res
   }
 });
 
-router.delete("/watch-condition/:id", async (req: ConveyorRequest, res) => {
+router.delete("/watch-condition/:id", isLoggedIn, async (req: ConveyorRequest, res) => {
   try {
     const id = Number(req.params.id);
     if (isNaN(id)) {

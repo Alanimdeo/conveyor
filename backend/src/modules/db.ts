@@ -239,6 +239,26 @@ export class Database {
     return { option, params, suffix };
   }
 
+  async getAdminId() {
+    const sql = "SELECT value AS id FROM info WHERE key = 'adminId'";
+    const result = await this.get<{ id: string }>(sql);
+    return result?.id;
+  }
+  async setAdminId(id: string) {
+    const sql = "UPDATE info SET value = ? WHERE key = 'adminId'";
+    await this.run(sql, [id]);
+  }
+
+  async getAdminPasswordHash() {
+    const sql = "SELECT value AS hash FROM info WHERE key = 'adminPasswordHash'";
+    const result = await this.get<{ hash: string }>(sql);
+    return result?.hash;
+  }
+  async setAdminPasswordHash(hash: string) {
+    const sql = "UPDATE info SET value = ? WHERE key = 'adminPasswordHash'";
+    await this.run(sql, [hash]);
+  }
+
   async get<T = unknown>(sql: string, params?: any[]) {
     return new Promise<T>((resolve, reject) => {
       this.db.get(sql, params, (err, row) => {
@@ -392,6 +412,11 @@ const createTable: {
   info: async (db: Database) => {
     await db.run("CREATE TABLE info (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
     await db.run("INSERT INTO info (key, value) VALUES (?, ?)", ["version", getLatestDatabaseVersion()]);
+    await db.run("INSERT INTO info (key, value) VALUES (?, ?)", ["adminId", "admin"]);
+    await db.run("INSERT INTO info (key, value) VALUES (?, ?)", [
+      "adminPasswordHash",
+      "$argon2id$v=19$m=65536,t=3,p=4$yLsjeK7Fwc79lwpOcCht2Q$RgL0tVoJR9x3Sq5oxniEtauLNHTNhq99R+AMxeYQyuE",
+    ]); // changeme
     return db;
   },
   watch_directories: async (db: Database) =>

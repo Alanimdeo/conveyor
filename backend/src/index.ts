@@ -1,8 +1,10 @@
 import path from "path";
 import dotenv from "dotenv";
 import express from "express";
+import session from "express-session";
 import createError from "http-errors";
-import cookieParser from "cookie-parser";
+import createMemoryStore from "memorystore";
+// import cookieParser from "cookie-parser";
 import logger from "morgan";
 import { loadDatabase } from "./modules/db";
 import { initializeWatchers } from "./modules/watcher";
@@ -12,12 +14,18 @@ import { alterDatabase } from "./alteration";
 
 dotenv.config();
 
+const MemoryStore = createMemoryStore(session);
+
 async function main() {
   const server = express();
   const port = process.env.PORT || 3000;
 
   console.log("Checking database updates...");
-  await alterDatabase(process.env.DB_FILE);
+  try {
+    await alterDatabase(process.env.DB_FILE);
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : err, "Skipping.");
+  }
 
   const db = await loadDatabase(process.env.DB_FILE, true);
   const watchers = await initializeWatchers(db);
@@ -25,7 +33,15 @@ async function main() {
   server.use(logger("combined"));
   server.use(express.json());
   server.use(express.urlencoded({ extended: false }));
-  server.use(cookieParser());
+  server.use(
+    session({
+      secret: process.env.SESSION_SECRET || Math.random().toString(36).substring(2),
+      resave: false,
+      saveUninitialized: false,
+      store: new MemoryStore({ checkPeriod: 30 * 60 * 1000 }),
+      cookie: { maxAge: 30 * 60 * 1000 },
+    })
+  );
 
   server.get("/favicon.ico", (_, res) => res.status(204).send());
 

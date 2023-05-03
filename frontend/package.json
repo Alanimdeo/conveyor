@@ -14,11 +14,13 @@
     "@element-plus/icons-vue": "^2.1.0",
     "@vueuse/core": "^9.13.0",
     "element-plus": "^2.3.2",
+    "fetch-intercept": "^2.4.0",
     "lodash": "^4.17.21",
     "pinia": "^2.0.33",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6",
-    "webfontloader": "^1.6.28"
+    "webfontloader": "^1.6.28",
+    "whatwg-fetch": "^3.6.2"
   },
   "devDependencies": {
     "@types/node": "^18.15.11",
