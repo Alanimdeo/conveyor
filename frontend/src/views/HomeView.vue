@@ -65,7 +65,6 @@ const dbVersion = await fetch("/api/db-version").then((res) => res.text());
 .footer {
   position: absolute;
   bottom: 1%;
-  width: 100%;
   text-align: center;
 }
 </style>
