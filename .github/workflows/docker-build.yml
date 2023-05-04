@@ -20,6 +20,7 @@ jobs:
           docker build -t alanimdeo/conveyor:latest -t alanimdeo/conveyor:$version -t alanimdeo/conveyor:$(node -p "require('./backend/package.json').version") .
       - name: Push Docker image
         run: |
+          version=$(node -p "require('./backend/package.json').version" | cut -d '.' -f -2)
           docker push alanimdeo/conveyor:latest
           docker push alanimdeo/conveyor:$version
           docker push alanimdeo/conveyor:$(node -p "require('./backend/package.json').version")
