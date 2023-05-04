@@ -1,0 +1,25 @@
+name: Docker Build and Publish
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build Docker image
+        run: |
+          version=$(node -p "require('./backend/package.json').version" | cut -d '.' -f -2)
+          docker build -t alanimdeo/conveyor:latest -t alanimdeo/conveyor:$version -t alanimdeo/conveyor:$(node -p "require('./backend/package.json').version") .
+      - name: Push Docker image
+        run: |
+          docker push alanimdeo/conveyor:latest
+          docker push alanimdeo/conveyor:$version
+          docker push alanimdeo/conveyor:$(node -p "require('./backend/package.json').version")
