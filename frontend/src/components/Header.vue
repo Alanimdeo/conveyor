@@ -35,6 +35,10 @@
       />
     </div>
     <div>
+      <p>로그 날짜 표시 형식</p>
+      <ElInput v-model="logDateFormat" />
+    </div>
+    <div>
       <p>계정</p>
       <ElForm>
         <ElFormItem label="ID">
@@ -54,13 +58,22 @@
             type="primary"
             @click="changeUserInfo()"
             :disabled="!username || !password || (newPassword ? newPassword !== newPasswordConfirm : false)"
-            >저장</ElButton
           >
+            저장
+          </ElButton>
         </ElFormItem>
       </ElForm>
     </div>
     <template #footer>
       <ElButton @click="settingsDialog = false">닫기</ElButton>
+      <ElButton
+        type="primary"
+        @click="saveSettings()"
+        :loading="savingSettings"
+        :disabled="logDateFormat === logDateFormatInitial"
+      >
+        저장
+      </ElButton>
     </template>
   </ElDialog>
 </template>
@@ -76,11 +89,21 @@ const headerStore = useHeaderStore();
 const activeIndex = computed(() => headerStore.activeIndex);
 
 const settingsDialog = ref(false);
+const savingSettings = ref(false);
+const logDateFormatInitial = ref("");
+const logDateFormat = ref("");
 const usernameInitial = ref("");
 const username = ref("");
 const password = ref("");
 const newPassword = ref("");
 const newPasswordConfirm = ref("");
+
+await fetch("/api/settings")
+  .then((res) => res.json())
+  .then((res) => {
+    logDateFormat.value = res.dateFormat;
+    logDateFormatInitial.value = res.dateFormat;
+  });
 
 await fetch("/api/user")
   .then((res) => res.json())
@@ -88,6 +111,32 @@ await fetch("/api/user")
     username.value = res.username;
     usernameInitial.value = res.username;
   });
+
+async function saveSettings() {
+  if (logDateFormat.value === logDateFormatInitial.value) {
+    ElMessage.error("변경할 내용이 없습니다.");
+    return;
+  }
+  savingSettings.value = true;
+  const res = await fetch("/api/settings", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      dateFormat: logDateFormat.value,
+    }),
+  });
+
+  if (res.status === 200) {
+    ElMessage.success("저장되었습니다.");
+    logDateFormatInitial.value = logDateFormat.value;
+    settingsDialog.value = false;
+  } else {
+    ElMessage.error("알 수 없는 오류가 발생했습니다.");
+  }
+  savingSettings.value = false;
+}
 
 async function changeUserInfo() {
   const userInfo: {

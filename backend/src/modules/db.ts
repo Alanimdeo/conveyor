@@ -1,4 +1,5 @@
 import { existsSync, readdirSync } from "fs";
+import { DateTime } from "luxon";
 import path from "path";
 import semver from "semver";
 import sqlite from "sqlite3";
@@ -176,7 +177,7 @@ export class Database {
 
     return count;
   }
-  async getLogs(options?: LogSearchOption) {
+  async getLogs(options?: LogSearchOption, dateFormat?: string) {
     let sql = "SELECT * FROM logs";
     const { option, params, suffix } = this.getLogCondition(options);
     if (option.length) {
@@ -190,7 +191,9 @@ export class Database {
 
     const result = await this.all<Log[]>(sql, params);
     result.map((log) => {
-      log.date = new Date(log.date);
+      if (typeof log.date === "number") {
+        log.date = DateTime.fromMillis(log.date).toFormat(dateFormat || "yyyy-MM-dd hh:mm:ss a");
+      }
       return log;
     });
     return result;
@@ -257,6 +260,18 @@ export class Database {
   async setAdminPasswordHash(hash: string) {
     const sql = "UPDATE info SET value = ? WHERE key = 'adminPasswordHash'";
     await this.run(sql, [hash]);
+  }
+
+  async getSettings() {
+    const sql = "SELECT value AS dateFormat FROM info WHERE key = 'dateFormat'";
+    const result = await this.get<{ dateFormat: string }>(sql);
+    return result;
+  }
+  async updateSettings(settings: { dateFormat?: string }) {
+    if (settings.dateFormat) {
+      const sql = "UPDATE info SET value = ? WHERE key = 'dateFormat'";
+      await this.run(sql, [settings.dateFormat]);
+    }
   }
 
   async get<T = unknown>(sql: string, params?: any[]) {
@@ -361,7 +376,7 @@ export function isRenamePattern(obj: any): obj is RenamePattern {
 
 export type Log = {
   id: number;
-  date: Date;
+  date: number | string;
   directoryId: number;
   conditionId: number;
   message: string;
@@ -417,6 +432,7 @@ const createTable: {
       "adminPasswordHash",
       "$argon2id$v=19$m=65536,t=3,p=4$yLsjeK7Fwc79lwpOcCht2Q$RgL0tVoJR9x3Sq5oxniEtauLNHTNhq99R+AMxeYQyuE",
     ]); // changeme
+    await db.run("INSERT INTO info (key, value) VALUES (?, ?)", ["dateFormat", "yyyy-MM-dd hh:mm:ss a"]);
     return db;
   },
   watch_directories: async (db: Database) =>

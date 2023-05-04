@@ -256,18 +256,20 @@ async function load() {
       }
     })
     .then((res) => {
-      if (!res.error) {
-        res = res.map((log: Log) => {
-          const directory = watchDirectories.value.find((d) => d.id === log.directoryId);
-          const condition = watchConditions.value.find((c) => c.id === log.conditionId);
-          return {
-            ...log,
-            directoryName: (directory?.name || (directory?.id ? "ID " + directory.id : null)) ?? "삭제된 폴더",
-            conditionName: (condition?.name || (condition?.id ? "ID " + condition.id : null)) ?? "삭제된 조건",
-          };
-        });
-        logs.value = res;
+      if (res.error) {
+        console.error(res.error);
+        return;
       }
+      res = res.map((log: Log) => {
+        const directory = watchDirectories.value.find((d) => d.id === log.directoryId);
+        const condition = watchConditions.value.find((c) => c.id === log.conditionId);
+        return {
+          ...log,
+          directoryName: (directory?.name || (directory?.id ? "ID " + directory.id : null)) ?? "삭제된 폴더",
+          conditionName: (condition?.name || (condition?.id ? "ID " + condition.id : null)) ?? "삭제된 조건",
+        };
+      });
+      logs.value = res;
     });
 }
 

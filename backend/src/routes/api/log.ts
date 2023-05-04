@@ -7,7 +7,8 @@ const router = Router();
 
 router.post("/log", forceJSON, isLoggedIn, async (req: ConveyorRequest, res) => {
   try {
-    const logs = await req.db!.getLogs(req.body);
+    const dateFormat = await req.db!.getSettings().then((settings) => settings.dateFormat);
+    const logs = await req.db!.getLogs(req.body, dateFormat);
     res.json(logs);
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : err });

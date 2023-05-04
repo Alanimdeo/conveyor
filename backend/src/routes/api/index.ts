@@ -3,10 +3,11 @@ import { Request } from "express";
 import session from "express-session";
 import { FSWatcher } from "chokidar";
 import { Database } from "../../modules/db";
+import { authRouter } from "./auth";
+import { settingsRouter } from "./settings";
 import { watchDirectoryRouter } from "./watchDirectory";
 import { watchConditionRouter } from "./watchCondition";
 import { logRouter } from "./log";
-import { authRouter } from "./auth";
 import { isLoggedIn } from "../../middlewares/auth";
 
 export type ConveyorRequest = Request & {
@@ -22,6 +23,7 @@ router.get("/db-version", isLoggedIn, (req: ConveyorRequest, res) => {
 });
 
 router.use(authRouter);
+router.use(settingsRouter);
 
 router.use(watchDirectoryRouter);
 router.use(watchConditionRouter);
