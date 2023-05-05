@@ -1,8 +1,9 @@
 {
   "name": "conveyor-frontend",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "author": "Alanimdeo <alan@imdeo.kr>",
-  "private": true,
+  "license": "MIT",
+  "private": false,
   "scripts": {
     "dev": "yarn && vite --host",
     "build": "run-p type-check build-only",

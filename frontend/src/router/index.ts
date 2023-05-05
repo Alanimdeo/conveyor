@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
+import { useHeaderStore } from "@/stores/header";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,6 +36,12 @@ const router = createRouter({
       component: () => import("../views/LogsView.vue"),
     },
   ],
+});
+
+router.beforeEach((to, _, next) => {
+  const headerStore = useHeaderStore();
+  headerStore.activeIndex = to.path;
+  next();
 });
 
 export default router;
