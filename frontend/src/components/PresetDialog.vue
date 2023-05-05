@@ -73,6 +73,7 @@ async function select(id: number) {
       ElMessage.error("프리셋을 불러오지 못했습니다.");
     }
   });
+  response.id = undefined;
   opened.value = false;
   confirmDialog.value = false;
   ElMessage.success("프리셋을 불러왔습니다.");
