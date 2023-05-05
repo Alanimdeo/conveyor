@@ -36,30 +36,39 @@
     </ElCard>
   </div>
 
-  <WatchDirectoryDialog
-    v-model="createDialog"
-    :loading="creatingDirectory"
-    :options="createDirectoryOptions"
-    @create="createDirectory"
-  />
-
   <RemoveWatchDirectoryDialog
     v-model="removeDialog"
     :directory-id="currentDirectoryId"
     @removed="refreshWatchDirectories()"
     style="max-width: 560px; width: 100%"
   />
+
+  <WatchDirectoryDialog
+    v-model="createDialog"
+    :loading="creatingDirectory"
+    :options="createDirectoryOptions"
+    @create="createDirectory"
+  >
+    <template #before>
+      <div class="mb end">
+        <ElButton type="success" :icon="Files" @click="presetDialog = true"> 프리셋 </ElButton>
+      </div>
+    </template>
+  </WatchDirectoryDialog>
+
+  <PresetDialog v-model="presetDialog" type="watch-directory" @select="selectPreset" />
 </template>
 
 <script setup lang="ts">
-import { Delete, Edit, Plus } from "@element-plus/icons-vue";
-import type { WatchDirectory } from "@/types";
+import { Delete, Edit, Plus, Files } from "@element-plus/icons-vue";
+import type { WatchDirectory, WatchDirectoryPreset } from "@/types";
 import { useRouter } from "vue-router";
 import { h, ref } from "vue";
 import type { Ref } from "vue";
 import { ElMessage } from "element-plus";
 import WatchDirectoryDialog from "@/components/WatchDirectoryDialog.vue";
 import RemoveWatchDirectoryDialog from "@/components/RemoveWatchDirectoryDialog.vue";
+import PresetDialog from "@/components/PresetDialog.vue";
 
 const router = useRouter();
 const currentDirectoryId = ref(0);
@@ -143,6 +152,12 @@ async function refreshWatchDirectories() {
   }
   watchDirectories.value = response;
 }
+
+const presetDialog = ref(false);
+function selectPreset(preset: WatchDirectoryPreset) {
+  createDirectoryOptions.value = Object.assign({}, preset);
+}
+
 await refreshWatchDirectories();
 </script>
 
@@ -152,6 +167,9 @@ await refreshWatchDirectories();
   flex-direction: column;
   justify-content: center;
   gap: 1em;
+}
+.mb {
+  margin-bottom: 1rem;
 }
 .end {
   display: flex;

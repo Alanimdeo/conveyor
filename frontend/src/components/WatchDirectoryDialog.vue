@@ -1,5 +1,6 @@
 <template>
   <ElDialog v-model="opened" :title="title || '폴더 생성'" style="max-width: 560px; width: 100%">
+    <slot name="before"></slot>
     <ElForm label-position="left" :model="options">
       <ElFormItem label="폴더 이름">
         <ElInput v-model="options.name" />
