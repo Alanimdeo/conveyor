@@ -2,7 +2,15 @@
   <ElPageHeader @back="router.back()">
     <template #content>
       <div class="title">
-        <span class="folder-id">{{ watchDirectory.name || "폴더 #" + watchDirectory.id }}</span>
+        <span class="folder-id">
+          <span v-if="watchDirectory.name">
+            {{ watchDirectory.name }}
+          </span>
+          <span v-else>
+            <span> 이름 없는 폴더 </span>
+            <span class="big gray">#{{ watchDirectory.id }}</span>
+          </span>
+        </span>
         <ElTag v-if="watchDirectory.enabled" type="success">사용 중</ElTag>
         <ElTag v-else type="danger">비활성화</ElTag>
       </div>
@@ -571,6 +579,10 @@ await refreshWatchConditions();
 }
 .big {
   font-size: 1.2rem;
+}
+.gray {
+  font-weight: 300;
+  color: #777;
 }
 .bold {
   font-weight: 600;

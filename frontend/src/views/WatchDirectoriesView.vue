@@ -10,7 +10,15 @@
       <template #header>
         <div class="card-header">
           <div>
-            <span class="folder-id">{{ directory.name || "폴더 #" + directory.id }}</span>
+            <span class="folder-name">
+              <span v-if="directory.name">
+                {{ directory.name }}
+              </span>
+              <span v-else>
+                <span>이름 없는 폴더</span>
+                <span class="folder-id"> #{{ directory.id }} </span>
+              </span>
+            </span>
             <ElTag v-if="directory.enabled" type="success">사용 중</ElTag>
             <ElTag v-else type="danger">비활성화</ElTag>
           </div>
@@ -166,7 +174,7 @@ async function refreshWatchDirectories() {
     }
   });
   if (response.error) {
-    ElMessage.error("폴더 목록을 불러오지 못했습니다..");
+    ElMessage.error("폴더 목록을 불러오지 못했습니다.");
     return;
   }
   watchDirectories.value = response;
@@ -185,7 +193,7 @@ await refreshWatchDirectories();
   display: flex;
   justify-content: flex-end;
 }
-.folder-id {
+.folder-name {
   margin-right: 0.5rem;
 }
 .card-header {
@@ -195,5 +203,10 @@ await refreshWatchDirectories();
 }
 .alert {
   display: inline-block;
+}
+.folder-id {
+  font-size: 1rem;
+  font-weight: 300;
+  color: #777;
 }
 </style>
