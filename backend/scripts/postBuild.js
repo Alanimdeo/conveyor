@@ -11,6 +11,9 @@ const packageJson = {
     alteration: "node alteration/index.js",
   },
   dependencies: backendPackageJson.dependencies,
+  devDependencies: {
+    supervisor: backendPackageJson.devDependencies.supervisor,
+  },
 };
 
 fs.writeFileSync("./dist/package.json", JSON.stringify(packageJson, null, 2));
