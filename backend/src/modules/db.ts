@@ -21,6 +21,13 @@ export class Database {
     this.db = new sqlite.Database(filename);
   }
 
+  async getWatchDirectoryCount() {
+    return await this.get<{
+      count: number;
+      enabled: number;
+    }>("SELECT COUNT(*) AS count, COUNT(CASE WHEN enabled = 1 THEN 1 END) AS enabled FROM watch_directories");
+  }
+
   async getWatchDirectories() {
     const query = await this.all<WatchDirectory[]>("SELECT * FROM watch_directories");
     return query.map(this.booleanizeWatchDirectory);
@@ -47,11 +54,32 @@ export class Database {
     return directory;
   }
 
-  async getWatchDirectoryCount() {
+  async getWatchDirectoryPresets() {
+    const query = await this.all<WatchDirectoryPreset[]>("SELECT id, name FROM watch_directory_presets");
+    return query.map(this.booleanizeWatchDirectoryPreset);
+  }
+  async getWatchDirectoryPreset(id: number) {
+    return this.booleanizeWatchDirectoryPreset(
+      await this.get<WatchDirectoryPreset>("SELECT * FROM watch_directory_presets WHERE id=?", [id])
+    );
+  }
+
+  booleanizeWatchDirectoryPreset(preset: WatchDirectoryPreset) {
+    if (!preset) {
+      return preset;
+    }
+    preset.enabled = Boolean(preset.enabled);
+    preset.recursive = Boolean(preset.recursive);
+    preset.usePolling = Boolean(preset.usePolling);
+    preset.ignoreDotFiles = Boolean(preset.ignoreDotFiles);
+    return preset;
+  }
+
+  async getWatchConditionCount() {
     return await this.get<{
       count: number;
       enabled: number;
-    }>("SELECT COUNT(*) AS count, COUNT(CASE WHEN enabled = 1 THEN 1 END) AS enabled FROM watch_directories");
+    }>("SELECT COUNT(*) AS count, COUNT(CASE WHEN enabled = 1 THEN 1 END) AS enabled FROM watch_conditions");
   }
 
   async getWatchConditions(directoryId?: number) {
@@ -80,11 +108,26 @@ export class Database {
     return condition;
   }
 
-  async getWatchConditionCount() {
-    return await this.get<{
-      count: number;
-      enabled: number;
-    }>("SELECT COUNT(*) AS count, COUNT(CASE WHEN enabled = 1 THEN 1 END) AS enabled FROM watch_conditions");
+  async getWatchConditionPresets() {
+    const query = await this.all<WatchConditionPreset[]>("SELECT id, name FROM watch_condition_presets");
+    return query.map(this.booleanizeWatchConditionPreset);
+  }
+  async getWatchConditionPreset(id: number) {
+    return this.booleanizeWatchConditionPreset(
+      await this.get<WatchConditionPreset>("SELECT * FROM watch_condition_presets WHERE id=?", [id])
+    );
+  }
+
+  booleanizeWatchConditionPreset(preset: WatchConditionPreset) {
+    if (!preset) {
+      return preset;
+    }
+    preset.enabled = Boolean(preset.enabled);
+    preset.useRegExp = Boolean(preset.useRegExp);
+    if (preset.renamePattern && typeof preset.renamePattern === "string") {
+      preset.renamePattern = JSON.parse(preset.renamePattern);
+    }
+    return preset;
   }
 
   async addWatchDirectory(directory: Omit<WatchDirectory, "id">) {
@@ -124,6 +167,35 @@ export class Database {
     await this.run("DELETE FROM watch_directories WHERE id=?", [id]);
   }
 
+  async addWatchDirectoryPreset(preset: Omit<WatchDirectoryPreset, "id">) {
+    const sql = `INSERT INTO watch_directory_presets (name, enabled, path, recursive, usePolling, interval, ignoreDotFiles) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    await this.run(sql, [
+      preset.name,
+      preset.enabled,
+      preset.path,
+      preset.recursive,
+      preset.usePolling,
+      preset.interval || null,
+      preset.ignoreDotFiles,
+    ]);
+  }
+  async updateWatchDirectoryPreset(id: number, preset: Omit<WatchDirectoryPreset, "id"> | WatchDirectoryPreset) {
+    const sql = `UPDATE watch_directory_presets SET name=?, enabled=?, path=?, recursive=?, usePolling=?, interval=?, ignoreDotFiles=? WHERE id=?`;
+    await this.run(sql, [
+      preset.name,
+      preset.enabled,
+      preset.path,
+      preset.recursive,
+      preset.usePolling,
+      preset.interval || null,
+      preset.ignoreDotFiles,
+      id,
+    ]);
+  }
+  async removeWatchDirectoryPreset(id: number) {
+    await this.run("DELETE FROM watch_directory_presets WHERE id=?", [id]);
+  }
+
   async addWatchCondition(condition: Omit<WatchCondition, "id">) {
     const sql = `INSERT INTO watch_conditions (name, directoryId, enabled, priority, type, useRegExp, pattern, destination, delay, renamePattern) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     await this.run(sql, [
@@ -157,6 +229,39 @@ export class Database {
   }
   async removeWatchCondition(id: number) {
     await this.run("DELETE FROM watch_conditions WHERE id=?", [id]);
+  }
+
+  async addWatchConditionPreset(preset: Omit<WatchConditionPreset, "id">) {
+    const sql = `INSERT INTO watch_condition_presets (name, enabled, priority, type, useRegExp, pattern, destination, delay, renamePattern) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    await this.run(sql, [
+      preset.name,
+      preset.enabled,
+      preset.priority,
+      preset.type,
+      preset.useRegExp,
+      preset.pattern,
+      preset.destination,
+      preset.delay,
+      preset.renamePattern ? JSON.stringify(preset.renamePattern) : null,
+    ]);
+  }
+  async updateWatchConditionPreset(id: number, preset: Omit<WatchConditionPreset, "id"> | WatchConditionPreset) {
+    const sql = `UPDATE watch_condition_presets SET name=?, enabled=?, priority=?, type=?, useRegExp=?, pattern=?, destination=?, delay=?, renamePattern=? WHERE id=?`;
+    await this.run(sql, [
+      preset.name,
+      preset.enabled,
+      preset.priority,
+      preset.type,
+      preset.useRegExp,
+      preset.pattern,
+      preset.destination,
+      preset.delay,
+      preset.renamePattern ? JSON.stringify(preset.renamePattern) : null,
+      id,
+    ]);
+  }
+  async removeWatchConditionPreset(id: number) {
+    await this.run("DELETE FROM watch_condition_presets WHERE id=?", [id]);
   }
 
   async createLog(log: { directoryId: number; conditionId: number; message: string }) {
@@ -317,6 +422,8 @@ export type WatchDirectory = {
   ignoreDotFiles: boolean;
 };
 
+export type WatchDirectoryPreset = WatchDirectory;
+
 export function isWatchDirectory(obj: any): obj is Omit<WatchDirectory, "id"> {
   return (
     typeof obj.enabled === "boolean" &&
@@ -327,6 +434,10 @@ export function isWatchDirectory(obj: any): obj is Omit<WatchDirectory, "id"> {
     (obj.interval === undefined || typeof obj.interval === "number") &&
     typeof obj.ignoreDotFiles === "boolean"
   );
+}
+
+export function isWatchDirectoryPreset(obj: any): obj is Omit<WatchDirectoryPreset, "id"> {
+  return isWatchDirectory(obj);
 }
 
 export type WatchCondition = {
@@ -343,9 +454,25 @@ export type WatchCondition = {
   renamePattern?: RenamePattern;
 };
 
+export type WatchConditionPreset = Omit<WatchCondition, "directoryId">;
+
 export function isWatchCondition(obj: any): obj is Omit<WatchCondition, "id"> {
   return (
     typeof obj.directoryId === "number" &&
+    typeof obj.name === "string" &&
+    typeof obj.enabled === "boolean" &&
+    typeof obj.priority === "number" &&
+    (obj.type === "file" || obj.type === "directory" || obj.type === "all") &&
+    typeof obj.useRegExp === "boolean" &&
+    typeof obj.pattern === "string" &&
+    typeof obj.destination === "string" &&
+    typeof obj.delay === "number" &&
+    (obj.renamePattern === undefined || isRenamePattern(obj.renamePattern))
+  );
+}
+
+export function isWatchConditionPreset(obj: any): obj is Omit<WatchConditionPreset, "id"> {
+  return (
     typeof obj.name === "string" &&
     typeof obj.enabled === "boolean" &&
     typeof obj.priority === "number" &&
@@ -439,9 +566,17 @@ const createTable: {
     await db.run(
       "CREATE TABLE watch_directories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 1, path TEXT NOT NULL, recursive INTEGER NOT NULL DEFAULT 1, usePolling INTEGER NOT NULL DEFAULT 0, interval INTEGER, ignoreDotFiles INTEGER NOT NULL DEFAULT 1)"
     ),
+  watch_directory_presets: async (db: Database) =>
+    await db.run(
+      "CREATE TABLE watch_directory_presets (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 1, path TEXT NOT NULL, recursive INTEGER NOT NULL DEFAULT 1, usePolling INTEGER NOT NULL DEFAULT 0, interval INTEGER, ignoreDotFiles INTEGER NOT NULL DEFAULT 1)"
+    ),
   watch_conditions: async (db: Database) =>
     await db.run(
       "CREATE TABLE watch_conditions (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', directoryId INTEGER NOT NULL, enabled INTEGER NOT NULL DEFAULT 1, priority INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL DEFAULT 'all', useRegExp INTEGER NOT NULL DEFAULT 0, pattern TEXT NOT NULL, destination TEXT NOT NULL, delay INTEGER NOT NULL DEFAULT 0, renamePattern TEXT, FOREIGN KEY(directoryId) REFERENCES watch_directories(id))"
+    ),
+  watch_condition_presets: async (db: Database) =>
+    await db.run(
+      "CREATE TABLE watch_condition_presets (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 1, priority INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL DEFAULT 'all', useRegExp INTEGER NOT NULL DEFAULT 0, pattern TEXT NOT NULL, destination TEXT NOT NULL, delay INTEGER NOT NULL DEFAULT 0, renamePattern TEXT)"
     ),
   logs: async (db: Database) =>
     await db.run(

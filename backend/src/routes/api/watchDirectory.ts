@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { isWatchDirectory } from "../../modules/db";
+import { isWatchDirectory, isWatchDirectoryPreset } from "../../modules/db";
 import { initializeWatcher } from "../../modules/watcher";
 import { ConveyorRequest } from ".";
 import { forceJSON } from "../../middlewares/forceJSON";
 import { isLoggedIn } from "../../middlewares/auth";
+import { checkId } from "../../middlewares/checkId";
 
 const router = Router();
 
@@ -24,13 +25,9 @@ router.get("/watch-directory/count", isLoggedIn, async (req: ConveyorRequest, re
   }
 });
 
-router.get("/watch-directory/:id", isLoggedIn, async (req: ConveyorRequest, res) => {
+router.get("/watch-directory/:id", isLoggedIn, checkId, async (req: ConveyorRequest, res) => {
   try {
     const id = Number(req.params.id);
-    if (isNaN(id)) {
-      res.status(400).json({ error: "Invalid id" });
-      return;
-    }
     const directory = await req.db!.getWatchDirectoryById(id);
     if (!directory) {
       res.status(404).json({ error: "Directory not found" });
@@ -42,13 +39,9 @@ router.get("/watch-directory/:id", isLoggedIn, async (req: ConveyorRequest, res)
   }
 });
 
-router.get("/watch-directory/:id/conditions", isLoggedIn, async (req: ConveyorRequest, res) => {
+router.get("/watch-directory/:id/conditions", isLoggedIn, checkId, async (req: ConveyorRequest, res) => {
   try {
     const id = Number(req.params.id);
-    if (isNaN(id)) {
-      res.status(400).json({ error: "Invalid id" });
-      return;
-    }
     const directory = await req.db!.getWatchDirectoryById(id);
     if (!directory) {
       res.status(404).json({ error: "Directory not found" });
@@ -73,13 +66,9 @@ router.post("/watch-directory", isLoggedIn, forceJSON, async (req: ConveyorReque
   }
 });
 
-router.patch("/watch-directory/:id", isLoggedIn, forceJSON, async (req: ConveyorRequest, res) => {
+router.patch("/watch-directory/:id", isLoggedIn, checkId, forceJSON, async (req: ConveyorRequest, res) => {
   try {
     const id = Number(req.params.id);
-    if (isNaN(id)) {
-      res.status(400).json({ error: "Invalid id" });
-      return;
-    }
     const directory = await req.db!.getWatchDirectoryById(id);
     if (!directory) {
       res.status(404).json({ error: "Directory not found" });
@@ -108,13 +97,9 @@ router.patch("/watch-directory/:id", isLoggedIn, forceJSON, async (req: Conveyor
   }
 });
 
-router.delete("/watch-directory/:id", isLoggedIn, async (req: ConveyorRequest, res) => {
+router.delete("/watch-directory/:id", isLoggedIn, checkId, async (req: ConveyorRequest, res) => {
   try {
     const id = Number(req.params.id);
-    if (isNaN(id)) {
-      res.status(400).json({ error: "Invalid id" });
-      return;
-    }
     const directory = await req.db!.getWatchDirectoryById(id);
     if (!directory) {
       res.status(404).json({ error: "Directory not found" });
@@ -128,6 +113,75 @@ router.delete("/watch-directory/:id", isLoggedIn, async (req: ConveyorRequest, r
       req.watchers![id].close();
       delete req.watchers![id];
     }
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : err });
+  }
+});
+
+router.get("/watch-directory-preset", isLoggedIn, async (req: ConveyorRequest, res) => {
+  try {
+    res.json(await req.db!.getWatchDirectoryPresets());
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : err });
+  }
+});
+
+router.get("/watch-directory-preset/:id", isLoggedIn, checkId, async (req: ConveyorRequest, res) => {
+  try {
+    const id = Number(req.params.id);
+    const preset = await req.db!.getWatchDirectoryPreset(id);
+    if (!preset) {
+      res.status(404).json({ error: "Preset not found" });
+      return;
+    }
+    res.json(preset);
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : err });
+  }
+});
+
+router.post("/watch-directory-preset", isLoggedIn, forceJSON, async (req: ConveyorRequest, res) => {
+  try {
+    if (!isWatchDirectoryPreset(req.body)) {
+      res.status(400).json({ error: "Invalid request" });
+      return;
+    }
+    await req.db!.addWatchDirectoryPreset(req.body);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : err });
+  }
+});
+
+router.patch("/watch-directory-preset/:id", isLoggedIn, checkId, forceJSON, async (req: ConveyorRequest, res) => {
+  try {
+    const id = Number(req.params.id);
+    const preset = await req.db!.getWatchDirectoryPreset(id);
+    if (!preset) {
+      res.status(404).json({ error: "Preset not found" });
+      return;
+    }
+    if (!isWatchDirectoryPreset(req.body)) {
+      res.status(400).json({ error: "Invalid request" });
+      return;
+    }
+    await req.db!.updateWatchDirectoryPreset(id, req.body);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : err });
+  }
+});
+
+router.delete("/watch-directory-preset/:id", isLoggedIn, checkId, async (req: ConveyorRequest, res) => {
+  try {
+    const id = Number(req.params.id);
+    const preset = await req.db!.getWatchDirectoryPreset(id);
+    if (!preset) {
+      res.status(404).json({ error: "Preset not found" });
+      return;
+    }
+    await req.db!.removeWatchDirectoryPreset(id);
     res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : err });

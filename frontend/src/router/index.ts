@@ -13,22 +13,27 @@ const router = createRouter({
     {
       path: "/login",
       name: "login",
-      component: () => import("../views/LoginView.vue"),
+      component: () => import("../views/Auth/LoginView.vue"),
     },
     {
       path: "/logout",
       name: "logout",
-      component: () => import("../views/LogoutView.vue"),
+      component: () => import("../views/Auth/LogoutView.vue"),
     },
     {
       path: "/directory",
       name: "watch-directories",
-      component: () => import("../views/WatchDirectoriesView.vue"),
+      component: () => import("../views/WatchDirectories/IndexView.vue"),
     },
     {
       path: "/directory/:id",
       name: "watch-directory",
-      component: () => import("../views/WatchDirectoryDetailView.vue"),
+      component: () => import("../views/WatchDirectories/DetailView.vue"),
+    },
+    {
+      path: "/preset",
+      name: "presets",
+      component: () => import("../views/Presets/IndexView.vue"),
     },
     {
       path: "/logs",
@@ -40,7 +45,7 @@ const router = createRouter({
 
 router.beforeEach((to, _, next) => {
   const headerStore = useHeaderStore();
-  headerStore.activeIndex = to.path;
+  headerStore.activeIndex = to.path.replace(/^(\/.*)\/.*$/, "$1");
   next();
 });
 

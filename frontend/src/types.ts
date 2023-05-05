@@ -9,6 +9,8 @@ export type WatchDirectory = {
   ignoreDotFiles: boolean;
 };
 
+export type WatchDirectoryPreset = WatchDirectory;
+
 export type WatchCondition = {
   id: number;
   name: string;
@@ -22,6 +24,8 @@ export type WatchCondition = {
   delay: number;
   renamePattern?: RenamePattern;
 };
+
+export type WatchConditionPreset = Omit<WatchCondition, "directoryId">;
 
 export enum WatchType {
   All = "all",

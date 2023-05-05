@@ -36,50 +36,12 @@
     </ElCard>
   </div>
 
-  <ElDialog v-model="createDialog" title="폴더 생성" style="max-width: 560px; width: 100%">
-    <ElForm label-position="left" :model="createDirectoryOptions">
-      <ElFormItem label="폴더 이름">
-        <ElInput v-model="createDirectoryOptions.name" />
-      </ElFormItem>
-      <ElFormItem label="활성화">
-        <ElSwitch v-model="createDirectoryOptions.enabled" />
-      </ElFormItem>
-      <ElFormItem label="폴더 경로">
-        <ElInput v-model="createDirectoryOptions.path" />
-      </ElFormItem>
-      <ElFormItem label="하위 폴더까지 탐색">
-        <ElSwitch v-model="createDirectoryOptions.recursive" />
-      </ElFormItem>
-      <ElFormItem label=".으로 시작하는 파일 무시">
-        <ElSwitch v-model="createDirectoryOptions.ignoreDotFiles" />
-      </ElFormItem>
-      <div class="alert">
-        <ElAlert type="info" show-icon :closable="false" style="margin-bottom: 10px">
-          <span>Conveyor가 변경 내용을 감지하지 못할 경우 폴링을 사용하도록 설정해 보세요.</span>
-        </ElAlert>
-        <ElAlert type="warning" show-icon :closable="false" style="margin-bottom: 10px">
-          <span>폴링 간격이 너무 짧으면 CPU 사용량이 높아질 수 있습니다.</span>
-        </ElAlert>
-      </div>
-      <ElFormItem label="폴링 사용">
-        <ElSwitch v-model="createDirectoryOptions.usePolling" />
-      </ElFormItem>
-      <ElFormItem v-if="createDirectoryOptions.usePolling" label="폴링 간격 (ms)">
-        <ElInputNumber v-model="createDirectoryOptions.interval" :min="100" :step="100" />
-      </ElFormItem>
-      <div class="end">
-        <ElButton @click="createDialog = false">취소</ElButton>
-        <ElButton
-          type="primary"
-          @click="createDirectory()"
-          :loading="creatingDirectory"
-          :disabled="createDirectoryOptions.path === ''"
-        >
-          생성
-        </ElButton>
-      </div>
-    </ElForm>
-  </ElDialog>
+  <WatchDirectoryDialog
+    v-model="createDialog"
+    :loading="creatingDirectory"
+    :options="createDirectoryOptions"
+    @create="createDirectory"
+  />
 
   <RemoveWatchDirectoryDialog
     v-model="removeDialog"
@@ -96,6 +58,7 @@ import { useRouter } from "vue-router";
 import { h, ref } from "vue";
 import type { Ref } from "vue";
 import { ElMessage } from "element-plus";
+import WatchDirectoryDialog from "@/components/WatchDirectoryDialog.vue";
 import RemoveWatchDirectoryDialog from "@/components/RemoveWatchDirectoryDialog.vue";
 
 const router = useRouter();
@@ -113,7 +76,8 @@ const createDirectoryOptions: Ref<Omit<WatchDirectory, "id">> = ref({
 const createDialog = ref(false);
 const creatingDirectory = ref(false);
 
-async function openCreateDialog() {
+function openCreateDialog() {
+  createDirectoryOptions.value.name = "";
   createDirectoryOptions.value.enabled = true;
   createDirectoryOptions.value.path = "";
   createDirectoryOptions.value.recursive = true;

@@ -39,9 +39,13 @@ declare module '@vue/runtime-core' {
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTag: typeof import('element-plus/es')['ElTag']
     Header: typeof import('./src/components/Header.vue')['default']
+    PresetDialog: typeof import('./src/components/PresetDialog.vue')['default']
+    RemoveDialog: typeof import('./src/components/RemoveDialog.vue')['default']
     RemoveWatchDirectoryDialog: typeof import('./src/components/RemoveWatchDirectoryDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     VXIcon: typeof import('./src/components/VXIcon.vue')['default']
+    WatchConditionDialog: typeof import('./src/components/WatchConditionDialog.vue')['default']
+    WatchDirectoryDialog: typeof import('./src/components/WatchDirectoryDialog.vue')['default']
   }
 }
