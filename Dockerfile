@@ -1,12 +1,18 @@
-FROM node:18-alpine
-
+# Build stage
+FROM node:18-alpine as builder
 WORKDIR /conveyor
-
-ENV LC_ALL C.UTF-8
-
 COPY . .
 
 WORKDIR /conveyor/backend
 RUN yarn build
 
-CMD ["yarn", "start"]
+# Production stage
+FROM node:18-alpine
+WORKDIR /conveyor
+
+ENV LC_ALL C.UTF-8
+
+COPY --from=builder /conveyor/backend/dist .
+RUN yarn
+
+ENTRYPOINT ["yarn", "start"]
