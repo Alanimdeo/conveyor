@@ -2,13 +2,31 @@
   <ElPageHeader @back="router.back()">
     <template #content>
       <div class="title">
-        <span class="folder-id">{{ watchDirectory.name || "폴더 #" + watchDirectory.id }}</span>
+        <span class="folder-name">
+          <span v-if="watchDirectory.name">
+            {{ watchDirectory.name }}
+          </span>
+          <span v-else>
+            <span> 이름 없는 폴더 </span>
+            <span class="big gray">#{{ watchDirectory.id }}</span>
+          </span>
+        </span>
         <ElTag v-if="watchDirectory.enabled" type="success">사용 중</ElTag>
         <ElTag v-else type="danger">비활성화</ElTag>
       </div>
     </template>
     <template #extra>
       <div v-if="width >= 512" class="title">
+        <ElButton
+          type="success"
+          :icon="Files"
+          @click="
+            presetDialogMode = 'watch-directory';
+            presetDialog = true;
+          "
+        >
+          프리셋
+        </ElButton>
         <ElButton
           type="primary"
           :icon="Check"
@@ -93,15 +111,7 @@
                     <ElTag v-else type="danger">비활성화</ElTag>
                   </div>
                   <div>
-                    <ElButton
-                      link
-                      type="primary"
-                      :icon="Edit"
-                      @click="
-                        createConditionId = condition.id;
-                        createConditionDialog = true;
-                      "
-                    >
+                    <ElButton link type="primary" :icon="Edit" @click="editWatchCondition(condition.id)">
                       편집
                     </ElButton>
                     <ElButton
@@ -197,97 +207,54 @@
     </template>
   </ElDialog>
 
-  <ElDialog
+  <WatchConditionDialog
     v-model="createConditionDialog"
-    :title="`조건 ${createConditionId === -1 ? '생성' : '편집'}`"
-    style="max-width: 560px; width: 100%"
+    :loading="creatingCondition"
+    :options="createConditionOptions"
+    v-model:has-rename-pattern="createConditionOptionsHasRenamePattern"
+    :rename-pattern="createConditionRenamePattern"
+    :title="dialogTexts[conditionDialogMode].title"
+    :submit-button-text="dialogTexts[conditionDialogMode].submit"
+    @create="createCondition()"
   >
-    <ElForm label-position="left" :model="createConditionOptions">
-      <ElFormItem label="이름">
-        <ElInput v-model="createConditionOptions.name" />
-      </ElFormItem>
-      <ElFormItem label="활성화">
-        <ElSwitch v-model="createConditionOptions.enabled" />
-      </ElFormItem>
-      <ElFormItem label="우선 순위">
-        <ElInputNumber v-model="createConditionOptions.priority" :min="0" />
-      </ElFormItem>
-      <ElFormItem label="감시 유형">
-        <ElRadioGroup v-model="createConditionOptions.type">
-          <ElRadio :label="WatchType.All">파일 및 폴더</ElRadio>
-          <ElRadio :label="WatchType.File">파일</ElRadio>
-          <ElRadio :label="WatchType.Directory">폴더</ElRadio>
-        </ElRadioGroup>
-      </ElFormItem>
-      <ElFormItem label="정규식 사용">
-        <ElSwitch v-model="createConditionOptions.useRegExp" />
-      </ElFormItem>
-      <ElFormItem label="패턴">
-        <ElInput v-model="createConditionOptions.pattern" />
-      </ElFormItem>
-      <ElAlert type="warning" show-icon :closable="false" style="margin-bottom: 10px">
-        <span>
-          이동 경로에 파일 이름을 포함하지 마세요! 이 행위는 의도되지 않은 동작을 일으킬 수 있으며, 파일 손상의 위험성이
-          있습니다.
-        </span>
-      </ElAlert>
-      <ElFormItem label="이동 안 함">
-        <ElSwitch v-model="noMove" />
-      </ElFormItem>
-      <ElFormItem v-if="!noMove" label="이동 경로">
-        <ElInput v-model="createConditionOptions.destination" />
-      </ElFormItem>
-      <ElFormItem label="이동 지연">
-        <ElInputNumber v-model="createConditionOptions.delay" :min="0" />
-      </ElFormItem>
-      <ElFormItem label="이름 변경 규칙">
-        <ElSwitch v-model="createConditionOptionsHasRenamePattern" />
-      </ElFormItem>
-      <div v-if="createConditionOptionsHasRenamePattern">
-        <p class="big">이름 변경 규칙</p>
-        <ElFormItem label="정규식 사용">
-          <ElSwitch v-model="createConditionRenamePattern.useRegExp" />
-        </ElFormItem>
-        <ElFormItem label="패턴">
-          <ElInput v-model="createConditionRenamePattern.pattern" />
-        </ElFormItem>
-        <ElFormItem label="바꿀 이름">
-          <ElInput v-model="createConditionRenamePattern.replaceValue" />
-        </ElFormItem>
-        <ElFormItem label="확장자 제외">
-          <ElSwitch v-model="createConditionRenamePattern.excludeExtension" />
-        </ElFormItem>
-      </div>
-      <div class="end">
-        <ElButton @click="createConditionDialog = false">취소</ElButton>
+    <template #before>
+      <div class="mb end">
         <ElButton
-          type="primary"
-          @click="createCondition()"
-          :loading="creatingCondition"
-          :disabled="
-            createConditionOptions.pattern === '' ||
-            createConditionOptions.destination === '' ||
-            (createConditionOptionsHasRenamePattern && createConditionRenamePattern.pattern === '') ||
-            (createConditionOptionsHasRenamePattern && createConditionRenamePattern.replaceValue === '')
+          type="success"
+          :icon="Files"
+          @click="
+            presetDialogMode = 'watch-condition';
+            presetDialog = true;
           "
         >
-          {{ createConditionId === -1 ? "생성" : "편집" }}
+          프리셋
         </ElButton>
       </div>
-    </ElForm>
-  </ElDialog>
+    </template>
+  </WatchConditionDialog>
+
+  <PresetDialog v-model="presetDialog" :type="presetDialogMode" @select="onPresetSelect" />
 </template>
 
 <script setup lang="ts">
-import { h, ref, watch } from "vue";
+import { h, ref } from "vue";
 import type { Ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { Check, Delete, Edit, Plus } from "@element-plus/icons-vue";
-import { WatchType, type WatchCondition, type WatchDirectory, type RenamePattern } from "@/types";
-import RemoveWatchDirectoryDialog from "@/components/RemoveWatchDirectoryDialog.vue";
-import VXIcon from "@/components/VXIcon.vue";
 import { isEqual } from "lodash";
 import { ElMessage } from "element-plus";
+import { Check, Delete, Edit, Plus, Files } from "@element-plus/icons-vue";
+import { WatchType } from "@/types";
+import type {
+  WatchDirectory,
+  WatchCondition,
+  RenamePattern,
+  WatchDirectoryPreset,
+  WatchConditionPreset,
+} from "@/types";
+import WatchConditionDialog from "@/components/WatchConditionDialog.vue";
+import RemoveWatchDirectoryDialog from "@/components/RemoveWatchDirectoryDialog.vue";
+import PresetDialog from "@/components/PresetDialog.vue";
+import VXIcon from "@/components/VXIcon.vue";
 
 const width = ref(window.innerWidth);
 window.addEventListener("resize", () => {
@@ -385,8 +352,8 @@ async function removeCondition(id: number) {
   await refreshWatchConditions();
 }
 
-const createConditionId = ref(-1);
-const createConditionOptions: Ref<Omit<WatchCondition, "id">> = ref({
+const conditionDialogMode = ref<"create" | "edit">("create");
+const createConditionOptions: Ref<{ id?: number } & Omit<WatchCondition, "id">> = ref({
   name: "",
   directoryId: directoryId,
   enabled: true,
@@ -397,7 +364,6 @@ const createConditionOptions: Ref<Omit<WatchCondition, "id">> = ref({
   destination: "",
   delay: 0,
 });
-const noMove = ref(false);
 const createConditionOptionsHasRenamePattern = ref(false);
 const createConditionRenamePattern: Ref<RenamePattern> = ref({
   useRegExp: false,
@@ -407,7 +373,7 @@ const createConditionRenamePattern: Ref<RenamePattern> = ref({
 });
 
 function openCreateDialog() {
-  createConditionId.value = -1;
+  conditionDialogMode.value = "create";
   createConditionOptions.value = {
     name: "",
     directoryId: directoryId,
@@ -419,7 +385,7 @@ function openCreateDialog() {
     destination: "",
     delay: 0,
   };
-  noMove.value = false;
+  // noMove.value = false;
   createConditionOptionsHasRenamePattern.value = false;
   createConditionRenamePattern.value = {
     useRegExp: false,
@@ -430,58 +396,52 @@ function openCreateDialog() {
   createConditionDialog.value = true;
 }
 
-watch(
-  () => createConditionId.value,
-  (id) => {
-    if (id === -1) {
-      createConditionOptions.value = {
-        name: "",
-        directoryId: directoryId,
-        enabled: true,
-        priority: 0,
-        type: WatchType.All,
-        useRegExp: false,
-        pattern: "",
-        destination: "",
-        delay: 0,
-      };
-      noMove.value = false;
-      createConditionOptionsHasRenamePattern.value = false;
-      createConditionRenamePattern.value = {
-        useRegExp: false,
-        pattern: "",
-        replaceValue: "",
-        excludeExtension: true,
-      };
-    } else {
-      createConditionOptions.value = Object.assign(
-        {},
-        watchConditions.value.find((condition) => condition.id === id)
-      );
-      noMove.value = createConditionOptions.value.destination === watchDirectory.value.path;
-      if (createConditionOptions.value.renamePattern) {
-        createConditionRenamePattern.value = Object.assign({}, createConditionOptions.value.renamePattern);
-        createConditionOptionsHasRenamePattern.value = true;
-      }
-    }
+function editWatchCondition(id: number) {
+  conditionDialogMode.value = "edit";
+  createConditionOptions.value = Object.assign(
+    {},
+    watchConditions.value.find((condition) => condition.id === id)
+  );
+  if (createConditionOptions.value.destination === watchDirectory.value.path) {
+    createConditionOptions.value.destination = "";
   }
-);
+  // noMove.value = createConditionOptions.value.destination === watchDirectory.value.path;
+  if (createConditionOptions.value.renamePattern) {
+    createConditionRenamePattern.value = Object.assign({}, createConditionOptions.value.renamePattern);
+    createConditionOptionsHasRenamePattern.value = true;
+  }
+  createConditionDialog.value = true;
+}
 
 const createConditionDialog = ref(false);
 const creatingCondition = ref(false);
 
+const dialogTexts = {
+  create: {
+    title: "감시 조건 추가",
+    submit: "추가",
+  },
+  edit: {
+    title: "감시 조건 수정",
+    submit: "수정",
+  },
+};
+
 async function createCondition() {
   creatingCondition.value = true;
   const response = await fetch(
-    `/api/watch-condition/${createConditionId.value === -1 ? directoryId : createConditionId.value}`,
+    `/api/watch-condition/${conditionDialogMode.value === "create" ? directoryId : createConditionOptions.value.id}`,
     {
-      method: createConditionId.value === -1 ? "POST" : "PATCH",
+      method: conditionDialogMode.value === "create" ? "POST" : "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         ...createConditionOptions.value,
-        destination: noMove.value ? watchDirectory.value.path : createConditionOptions.value.destination,
+        destination:
+          createConditionOptions.value.destination === ""
+            ? watchDirectory.value.path
+            : createConditionOptions.value.destination,
         renamePattern: createConditionOptionsHasRenamePattern.value ? createConditionRenamePattern.value : undefined,
       }),
     }
@@ -493,12 +453,12 @@ async function createCondition() {
     }
   });
   if (response.success) {
-    ElMessage.success(`감시 조건을 ${createConditionId.value === -1 ? "생성" : "저장"}했습니다.`);
+    ElMessage.success(`감시 조건을 ${dialogTexts[conditionDialogMode.value].submit}했습니다.`);
     await refreshWatchConditions();
   } else {
     ElMessage.error(
       h("div", null, [
-        h("p", null, `감시 조건을 ${createConditionId.value === -1 ? "생성" : "저장"}하지 못했습니다.`),
+        h("p", null, `감시 조건을 ${dialogTexts[conditionDialogMode.value].submit}하지 못했습니다.`),
         h("p", null, response.error),
       ])
     );
@@ -506,6 +466,31 @@ async function createCondition() {
 
   creatingCondition.value = false;
   createConditionDialog.value = false;
+}
+
+const presetDialog = ref(false);
+const presetDialogMode = ref<"watch-directory" | "watch-condition">("watch-directory");
+
+function onPresetSelect(preset: WatchDirectoryPreset | WatchConditionPreset) {
+  if (presetDialogMode.value === "watch-directory") {
+    watchDirectory.value = Object.assign({}, preset as WatchDirectoryPreset);
+  } else {
+    createConditionOptions.value = Object.assign(createConditionOptions.value, preset as WatchConditionPreset);
+    if (createConditionOptions.value.destination === watchDirectory.value.path) {
+      createConditionOptions.value.destination = "";
+    }
+    if (createConditionOptions.value.renamePattern) {
+      createConditionRenamePattern.value = Object.assign(
+        createConditionRenamePattern.value,
+        createConditionOptions.value.renamePattern
+      );
+      createConditionOptions.value.renamePattern = undefined;
+      createConditionOptionsHasRenamePattern.value = true;
+    } else {
+      createConditionOptionsHasRenamePattern.value = false;
+    }
+  }
+  presetDialog.value = false;
 }
 
 await refreshWatchConditions();
@@ -526,7 +511,7 @@ await refreshWatchConditions();
   display: flex;
   align-items: center;
 }
-.folder-id {
+.folder-name {
   font-size: 1.5rem;
   font-weight: 500;
   margin-right: 0.5rem;
@@ -571,6 +556,10 @@ await refreshWatchConditions();
 }
 .big {
   font-size: 1.2rem;
+}
+.gray {
+  font-weight: 300;
+  color: #777;
 }
 .bold {
   font-weight: 600;

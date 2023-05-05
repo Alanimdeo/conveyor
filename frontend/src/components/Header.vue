@@ -8,6 +8,7 @@
 
       <ElMenuItem index="/">홈</ElMenuItem>
       <ElMenuItem index="/directory">폴더</ElMenuItem>
+      <ElMenuItem index="/preset">프리셋</ElMenuItem>
       <ElMenuItem index="/logs">로그</ElMenuItem>
       <div class="flex-grow" />
 
