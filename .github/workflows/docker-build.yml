@@ -8,19 +8,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+      - name: Set environment variables
+        run: |
+          echo "VERSION=$(node -p \"require('./backend/package.json').version\")" >> $GITHUB_ENV
+          echo "MAJOR_VERSION=$(echo $VERSION | cut -d '.' -f -1)" >> $GITHUB_ENV
+          echo "MINOR_VERSION=$(echo $VERSION | cut -d '.' -f -2)" >> $GITHUB_ENV
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build Docker image
         run: |
-          version=$(node -p "require('./backend/package.json').version" | cut -d '.' -f -2)
-          docker build -t alanimdeo/conveyor:latest -t alanimdeo/conveyor:$version -t alanimdeo/conveyor:$(node -p "require('./backend/package.json').version") .
-      - name: Push Docker image
+          docker build -t alanimdeo/conveyor:latest -t alanimdeo/conveyor:$VERSION -t alanimdeo/conveyor:$MAJOR_VERSION -t alanimdeo/conveyor:$MINOR_VERSION .
+      - name: Push Docker image to Docker Hub
         run: |
-          version=$(node -p "require('./backend/package.json').version" | cut -d '.' -f -2)
           docker push alanimdeo/conveyor:latest
-          docker push alanimdeo/conveyor:$version
-          docker push alanimdeo/conveyor:$(node -p "require('./backend/package.json').version")
+          docker push alanimdeo/conveyor:$VERSION
+          docker push alanimdeo/conveyor:$MAJOR_VERSION
+          docker push alanimdeo/conveyor:$MINOR_VERSION
+      - name: Push Docker image to GitHub Container Registry
+        run: |
+          docker tag alanimdeo/conveyor:latest ghcr.io/alanimdeo/conveyor:latest
+          docker tag alanimdeo/conveyor:$VERSION ghcr.io/alanimdeo/conveyor:$VERSION
+          docker tag alanimdeo/conveyor:$MAJOR_VERSION ghcr.io/alanimdeo/conveyor:$MAJOR_VERSION
+          docker tag alanimdeo/conveyor:$MINOR_VERSION ghcr.io/alanimdeo/conveyor:$MINOR_VERSION
+          docker push ghcr.io/alanimdeo/conveyor:latest
+          docker push ghcr.io/alanimdeo/conveyor:$VERSION
+          docker push ghcr.io/alanimdeo/conveyor:$MAJOR_VERSION
+          docker push ghcr.io/alanimdeo/conveyor:$MINOR_VERSION
