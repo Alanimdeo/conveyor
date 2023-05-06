@@ -11,7 +11,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Set environment variables
         run: |
-          echo "VERSION=$(node -p 'require(\'./backend/package.json\').version')" >> $GITHUB_ENV
+          echo "VERSION=$(node -p "require('./backend/package.json').version")" >> $GITHUB_ENV
           echo "MAJOR_VERSION=$(echo $VERSION | cut -d '.' -f -1)" >> $GITHUB_ENV
           echo "MINOR_VERSION=$(echo $VERSION | cut -d '.' -f -2)" >> $GITHUB_ENV
       - name: Login to Docker Hub
