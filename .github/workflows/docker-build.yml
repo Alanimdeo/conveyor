@@ -31,17 +31,17 @@ jobs:
           docker build -t alanimdeo/conveyor:latest -t alanimdeo/conveyor:$VERSION -t alanimdeo/conveyor:$MAJOR_VERSION -t alanimdeo/conveyor:$MINOR_VERSION .
       - name: Push Docker image to Docker Hub
         run: |
-          docker push alanimdeo/conveyor:latest
-          docker push alanimdeo/conveyor:$VERSION
           docker push alanimdeo/conveyor:$MAJOR_VERSION
           docker push alanimdeo/conveyor:$MINOR_VERSION
+          docker push alanimdeo/conveyor:$VERSION
+          docker push alanimdeo/conveyor:latest
       - name: Push Docker image to GitHub Container Registry
         run: |
-          docker tag alanimdeo/conveyor:latest ghcr.io/alanimdeo/conveyor:latest
-          docker tag alanimdeo/conveyor:$VERSION ghcr.io/alanimdeo/conveyor:$VERSION
           docker tag alanimdeo/conveyor:$MAJOR_VERSION ghcr.io/alanimdeo/conveyor:$MAJOR_VERSION
           docker tag alanimdeo/conveyor:$MINOR_VERSION ghcr.io/alanimdeo/conveyor:$MINOR_VERSION
-          docker push ghcr.io/alanimdeo/conveyor:latest
-          docker push ghcr.io/alanimdeo/conveyor:$VERSION
+          docker tag alanimdeo/conveyor:$VERSION ghcr.io/alanimdeo/conveyor:$VERSION
+          docker tag alanimdeo/conveyor:latest ghcr.io/alanimdeo/conveyor:latest
           docker push ghcr.io/alanimdeo/conveyor:$MAJOR_VERSION
           docker push ghcr.io/alanimdeo/conveyor:$MINOR_VERSION
+          docker push ghcr.io/alanimdeo/conveyor:$VERSION
+          docker push ghcr.io/alanimdeo/conveyor:latest
