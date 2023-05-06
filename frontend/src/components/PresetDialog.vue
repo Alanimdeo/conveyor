@@ -2,6 +2,7 @@
   <ElDialog v-model="opened" title="프리셋 선택" style="max-width: 560px; width: 100%">
     <div v-for="preset in presets" :key="preset.id" class="preset">
       <ElButton
+        class="left-align"
         plain
         size="large"
         @click="
@@ -12,7 +13,11 @@
         {{ preset.name || "이름 없는 프리셋 " + preset.id }}
       </ElButton>
     </div>
+    <div class="end">
+      <ElButton @click="opened = false">취소</ElButton>
+    </div>
   </ElDialog>
+
   <ElDialog v-model="confirmDialog" title="선택 확인">
     프리셋을 불러오시겠습니까? 저장되지 않은 변경 사항은 모두 사라집니다.
 
@@ -84,9 +89,13 @@ async function select(id: number) {
 <style scoped>
 .preset {
   display: block;
+  margin-bottom: 1rem;
 }
 .preset > button {
   width: 100%;
   margin: 0;
+}
+.left-align {
+  justify-content: left;
 }
 </style>

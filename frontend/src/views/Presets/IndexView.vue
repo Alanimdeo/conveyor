@@ -358,16 +358,6 @@ await fetchWatchConditionPresets();
 </script>
 
 <style scoped>
-.container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1em;
-}
-.end {
-  display: flex;
-  justify-content: flex-end;
-}
 .tabs {
   padding: 0 0.5rem;
 }

@@ -1,9 +1,7 @@
 <template>
-  <ElIcon v-if="modelValue">
-    <Check />
-  </ElIcon>
-  <ElIcon v-else>
-    <Close />
+  <ElIcon>
+    <Check v-if="modelValue" />
+    <Close v-else />
   </ElIcon>
 </template>
 

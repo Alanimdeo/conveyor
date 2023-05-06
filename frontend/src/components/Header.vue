@@ -1,7 +1,7 @@
 <template>
   <ElHeader>
     <ElMenu :default-active="activeIndex" mode="horizontal" :ellipsis="false" router>
-      <div class="logo">
+      <div class="logo" @click="$router.push('/')">
         <img src="/logo.svg" alt="logo" :class="['logo-img', headerStore.isDark ? 'white' : null]" />
         <p class="logo-title">Conveyor</p>
       </div>
@@ -23,7 +23,7 @@
     </ElMenu>
   </ElHeader>
 
-  <ElDialog v-model="settingsDialog" title="설정">
+  <ElDialog class="settings" v-model="settingsDialog" title="설정">
     <div>
       <p>테마</p>
       <ElSwitch
@@ -190,31 +190,20 @@ async function changeUserInfo() {
 </script>
 
 <style scoped>
-.flex-grow {
-  flex-grow: 1;
-}
-
 .logo {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 20px;
-  /* font-size: 20px; */
-  /* font-weight: 600; */
-  /* color: #fff; */
+  cursor: pointer;
 }
 .logo-img {
   width: 32px;
   height: 32px;
   margin-right: 0.4em;
 }
-.white {
-  filter: invert(1);
-}
 .logo-title {
-  /* font-size: 20px; */
   font-weight: 600;
-  /* color: #fff; */
   margin: 0;
   margin-bottom: 0.4em;
 }
@@ -223,15 +212,14 @@ async function changeUserInfo() {
     display: none;
   }
 }
-
-.after {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 20px;
-  column-gap: 0.5em;
-}
 .button {
   cursor: pointer;
+}
+</style>
+
+<style>
+.settings > .el-dialog__body {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 </style>

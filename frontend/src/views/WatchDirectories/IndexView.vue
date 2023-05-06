@@ -36,12 +36,7 @@
     </ElCard>
   </div>
 
-  <RemoveWatchDirectoryDialog
-    v-model="removeDialog"
-    :directory-id="currentDirectoryId"
-    @removed="refreshWatchDirectories()"
-    style="max-width: 560px; width: 100%"
-  />
+  <RemoveDialog v-model="removeDialog" title="폴더 삭제" :name="selectedDirectoryName" @confirm="removeDirectory()" />
 
   <WatchDirectoryDialog
     v-model="createDialog"
@@ -63,11 +58,11 @@
 import { Delete, Edit, Plus, Files } from "@element-plus/icons-vue";
 import type { WatchDirectory, WatchDirectoryPreset } from "@/types";
 import { useRouter } from "vue-router";
-import { h, ref } from "vue";
+import { computed, h, ref } from "vue";
 import type { Ref } from "vue";
 import { ElMessage } from "element-plus";
 import WatchDirectoryDialog from "@/components/WatchDirectoryDialog.vue";
-import RemoveWatchDirectoryDialog from "@/components/RemoveWatchDirectoryDialog.vue";
+import RemoveDialog from "@/components/RemoveDialog.vue";
 import PresetDialog from "@/components/PresetDialog.vue";
 
 const router = useRouter();
@@ -131,10 +126,41 @@ async function createDirectory() {
 }
 
 const removeDialog = ref(false);
-
 function openRemoveDialog(id: number) {
   currentDirectoryId.value = id;
   removeDialog.value = true;
+}
+
+const selectedDirectoryName = computed(
+  () =>
+    watchDirectories.value.find((directory) => directory.id === currentDirectoryId.value)?.name ||
+    `이름 없는 폴더 #${currentDirectoryId.value}`
+);
+
+const removingDirectory = ref(false);
+async function removeDirectory() {
+  removingDirectory.value = true;
+  const response = await fetch("/api/watch-directory/" + currentDirectoryId.value, {
+    method: "DELETE",
+  }).then(async (res) => {
+    try {
+      return await res.json();
+    } catch (e) {
+      return { error: "서버에서 응답을 받지 못했습니다." };
+    }
+  });
+
+  if (response.error) {
+    console.error(response.error);
+    ElMessage.error("오류가 발생하여 폴더를 삭제하지 못했습니다.");
+    removingDirectory.value = false;
+    return;
+  }
+
+  ElMessage.success("폴더를 삭제했습니다.");
+  removeDialog.value = false;
+  removingDirectory.value = false;
+  await refreshWatchDirectories();
 }
 
 const watchDirectories: Ref<WatchDirectory[]> = ref([]);
@@ -162,19 +188,6 @@ await refreshWatchDirectories();
 </script>
 
 <style scoped>
-.container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1em;
-}
-.mb {
-  margin-bottom: 1rem;
-}
-.end {
-  display: flex;
-  justify-content: flex-end;
-}
 .folder-name {
   margin-right: 0.5rem;
 }

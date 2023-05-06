@@ -1,0 +1,67 @@
+/* Global */
+:root {
+  font-family: "Noto Sans KR", sans-serif;
+}
+body {
+  margin: 0;
+}
+.el-alert__description {
+  margin-top: 0 !important;
+}
+
+/* Layout */
+.flex {
+  display: flex;
+}
+.flex-grow {
+  flex-grow: 1;
+}
+.after {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  column-gap: 0.5rem;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1em;
+}
+.end {
+  display: flex;
+  justify-content: flex-end;
+}
+.mb {
+  margin-bottom: 1rem;
+}
+
+/* Logo */
+.logo {
+  max-width: 240px;
+}
+.white {
+  filter: invert(1);
+}
+
+/* Fonts */
+.huge {
+  font-size: 3rem;
+}
+.big {
+  font-size: 1.2rem;
+}
+.small {
+  font-size: 0.8rem;
+}
+.bold {
+  font-weight: 600;
+}
+.thin {
+  font-weight: 300;
+}
+.gray {
+  color: #777;
+}

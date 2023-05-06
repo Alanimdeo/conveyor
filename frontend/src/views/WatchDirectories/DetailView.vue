@@ -8,7 +8,7 @@
           </span>
           <span v-else>
             <span> 이름 없는 폴더 </span>
-            <span class="big gray">#{{ watchDirectory.id }}</span>
+            <span class="big thin gray">#{{ watchDirectory.id }}</span>
           </span>
         </span>
         <ElTag v-if="watchDirectory.enabled" type="success">사용 중</ElTag>
@@ -191,10 +191,12 @@
     </div>
   </ElPageHeader>
 
-  <RemoveWatchDirectoryDialog
+  <RemoveDialog
     v-model="removeDirectoryDialog"
-    :directory-id="watchDirectory.id"
-    @removed="router.replace('/directory')"
+    title="폴더 삭제"
+    :name="selectedDirectoryName"
+    :loading="removingDirectory"
+    @confirm="removeDirectory()"
   />
 
   <ElDialog v-model="removeConditionDialog" title="조건 삭제" style="max-width: 560px; width: 100%">
@@ -237,7 +239,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref } from "vue";
+import { h, ref, computed } from "vue";
 import type { Ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { isEqual } from "lodash";
@@ -252,7 +254,7 @@ import type {
   WatchConditionPreset,
 } from "@/types";
 import WatchConditionDialog from "@/components/WatchConditionDialog.vue";
-import RemoveWatchDirectoryDialog from "@/components/RemoveWatchDirectoryDialog.vue";
+import RemoveDialog from "@/components/RemoveDialog.vue";
 import PresetDialog from "@/components/PresetDialog.vue";
 import VXIcon from "@/components/VXIcon.vue";
 
@@ -309,6 +311,34 @@ async function saveWatchDirectory() {
   watchDirectoryInitial.value = Object.assign({}, watchDirectory.value);
   ElMessage.success("감시 폴더를 저장했습니다.");
   savingWatchDirectory.value = false;
+}
+
+const selectedDirectoryName = computed(() => watchDirectory.value.name || `이름 없는 폴더 #${watchDirectory.value.id}`);
+
+const removingDirectory = ref(false);
+async function removeDirectory() {
+  removingDirectory.value = true;
+  const response = await fetch("/api/watch-directory/" + watchDirectory.value.id, {
+    method: "DELETE",
+  }).then(async (res) => {
+    try {
+      return await res.json();
+    } catch (e) {
+      return { error: "서버에서 응답을 받지 못했습니다." };
+    }
+  });
+
+  if (response.error) {
+    console.error(response.error);
+    ElMessage.error("오류가 발생하여 폴더를 삭제하지 못했습니다.");
+    removingDirectory.value = false;
+    return;
+  }
+
+  ElMessage.success("폴더를 삭제했습니다.");
+  removeDirectoryDialog.value = false;
+  removingDirectory.value = false;
+  router.replace("/directory");
 }
 
 const watchConditions: Ref<WatchCondition[]> = ref([]);
@@ -497,16 +527,6 @@ await refreshWatchConditions();
 </script>
 
 <style scoped>
-.container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1em;
-}
-.end {
-  display: flex;
-  justify-content: flex-end;
-}
 .title {
   display: flex;
   align-items: center;
@@ -550,18 +570,5 @@ await refreshWatchConditions();
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-.mb {
-  margin-bottom: 1rem;
-}
-.big {
-  font-size: 1.2rem;
-}
-.gray {
-  font-weight: 300;
-  color: #777;
-}
-.bold {
-  font-weight: 600;
 }
 </style>
