@@ -26,7 +26,6 @@ export async function alterDatabase(databasePath: string = CONVEYOR_DEFAULT_DATA
     const { upgrade } = await import(`./scripts/${script}`);
     await upgrade(db);
   }
-  // await db.run()
 }
 
 if (require.main === module) {

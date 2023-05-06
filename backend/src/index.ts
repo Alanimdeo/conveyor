@@ -4,7 +4,6 @@ import express from "express";
 import session from "express-session";
 import createError from "http-errors";
 import createMemoryStore from "memorystore";
-// import cookieParser from "cookie-parser";
 import logger from "morgan";
 import { loadDatabase } from "./modules/db";
 import { initializeWatchers } from "./modules/watcher";

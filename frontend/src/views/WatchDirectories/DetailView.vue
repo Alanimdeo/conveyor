@@ -415,7 +415,6 @@ function openCreateDialog() {
     destination: "",
     delay: 0,
   };
-  // noMove.value = false;
   createConditionOptionsHasRenamePattern.value = false;
   createConditionRenamePattern.value = {
     useRegExp: false,
@@ -435,7 +434,6 @@ function editWatchCondition(id: number) {
   if (createConditionOptions.value.destination === watchDirectory.value.path) {
     createConditionOptions.value.destination = "";
   }
-  // noMove.value = createConditionOptions.value.destination === watchDirectory.value.path;
   if (createConditionOptions.value.renamePattern) {
     createConditionRenamePattern.value = Object.assign({}, createConditionOptions.value.renamePattern);
     createConditionOptionsHasRenamePattern.value = true;
