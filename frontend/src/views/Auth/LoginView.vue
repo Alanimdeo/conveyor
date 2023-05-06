@@ -1,7 +1,7 @@
 <template>
-  <div class="container">
+  <div class="form">
     <img src="/logo.svg" alt="logo" :class="['logo', headerStore.isDark ? 'white' : null]" />
-    <ElCard class="form">
+    <ElCard class="inner">
       <ElForm :model="userInfo" label-width="80px">
         <ElFormItem label="ID">
           <ElInput autocomplete="username" v-model="userInfo.username" @keydown="onKeyPress" />
@@ -75,13 +75,7 @@ async function login() {
 </script>
 
 <style scoped>
-.logo {
-  max-width: 240px;
-}
-.white {
-  filter: invert(1);
-}
-.container {
+.form {
   max-width: 560px;
   margin: 0 auto;
   display: flex;
@@ -89,7 +83,7 @@ async function login() {
   align-items: center;
   row-gap: 2em;
 }
-.form {
+.inner {
   width: 100%;
 }
 </style>

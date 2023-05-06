@@ -48,9 +48,3 @@ async function removeDirectory(id: number) {
   emit("removed", id);
 }
 </script>
-
-<style scoped>
-.bold {
-  font-weight: 600;
-}
-</style>
