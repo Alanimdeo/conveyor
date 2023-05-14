@@ -8,7 +8,6 @@ import logger from "morgan";
 import { loadDatabase } from "./modules/db";
 import { initializeWatchers } from "./modules/watcher";
 import { router as apiRouter } from "./routes/api";
-import type { ConveyorRequest } from "./routes/api";
 import { alterDatabase } from "./alteration";
 
 dotenv.config();
@@ -47,7 +46,7 @@ async function main() {
   server.use(express.static(path.join(__dirname, "public")));
   server.use(
     "/api",
-    (req: ConveyorRequest, _, next) => {
+    (req, _, next) => {
       req.db = db;
       req.watchers = watchers;
       next();

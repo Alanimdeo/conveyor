@@ -1,7 +1,6 @@
-import { NextFunction, Response } from "express";
-import { ConveyorRequest } from "../routes/api";
+import { NextFunction, Request, Response } from "express";
 
-export function isLoggedIn(req: ConveyorRequest, res: Response, next: NextFunction) {
+export function isLoggedIn(req: Request, res: Response, next: NextFunction) {
   if (req.session.username) {
     next();
     return;
@@ -9,7 +8,7 @@ export function isLoggedIn(req: ConveyorRequest, res: Response, next: NextFuncti
   res.status(401).json({ error: "Unauthorized" });
 }
 
-export function isNotLoggedIn(req: ConveyorRequest, res: Response, next: NextFunction) {
+export function isNotLoggedIn(req: Request, res: Response, next: NextFunction) {
   if (!req.session.username) {
     next();
     return;
