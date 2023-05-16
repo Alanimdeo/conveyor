@@ -13,7 +13,7 @@
     "build": "yarn workspaces run build",
     "postbuild": "node scripts/postBuild.js",
     "update-deps": "yarn workspaces run update-deps",
-    "precommit": "node scripts/preCommit.js && git add ./**/package.json"
+    "precommit": "node scripts/preCommit.js"
   },
   "workspaces": [
     "types",
