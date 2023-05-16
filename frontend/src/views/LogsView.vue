@@ -58,7 +58,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import type { Ref } from "vue";
-import type { Log, LogSearchOption, WatchCondition, WatchDirectory } from "@/types";
+import type { Log, LogSearchOption, WatchCondition, WatchDirectory } from "@conveyor/types";
 
 const watchDirectories: Ref<WatchDirectory[]> = ref([]);
 await fetch("/api/watch-directory")

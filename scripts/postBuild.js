@@ -1,5 +1,5 @@
 const fs = require("fs");
-const backendPackageJson = JSON.parse(fs.readFileSync("./package.json"));
+const backendPackageJson = JSON.parse(fs.readFileSync("./backend/package.json"));
 
 const packageJson = {
   name: "conveyor",
@@ -7,13 +7,10 @@ const packageJson = {
   author: "Alanimdeo <alan@imdeo.kr>",
   license: "MIT",
   scripts: {
-    start: "supervisor index.js",
+    start: "nodemon index.js",
     alteration: "node alteration/index.js",
   },
   dependencies: backendPackageJson.dependencies,
-  devDependencies: {
-    supervisor: backendPackageJson.devDependencies.supervisor,
-  },
 };
 
 fs.writeFileSync("./dist/package.json", JSON.stringify(packageJson, null, 2));

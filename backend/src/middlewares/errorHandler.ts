@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 export function errorHandler(err: unknown, _: Request, res: Response, next: NextFunction) {
   console.error(err);

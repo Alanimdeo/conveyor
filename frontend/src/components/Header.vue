@@ -1,7 +1,7 @@
 <template>
   <ElHeader>
     <ElMenu :default-active="activeIndex" mode="horizontal" :ellipsis="false" router>
-      <div class="logo" @click="$router.push('/')">
+      <div class="logo" @click="router.push('/')">
         <img src="/logo.svg" alt="logo" :class="['logo-img', headerStore.isDark ? 'white' : null]" />
         <p class="logo-title">Conveyor</p>
       </div>
@@ -16,7 +16,7 @@
         <ElIcon class="button" :size="20" @click="settingsDialog = true">
           <Setting />
         </ElIcon>
-        <ElIcon class="button" :size="20" @click="$router.push({ name: 'logout' })">
+        <ElIcon class="button" :size="20" @click="router.push({ name: 'logout' })">
           <SwitchButton />
         </ElIcon>
       </div>
@@ -88,9 +88,12 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
 import { Moon, Sunny, SwitchButton, Setting } from "@element-plus/icons-vue";
 import { useHeaderStore } from "@/stores/header";
-import { ElMessage } from "element-plus";
+
+const router = useRouter();
 
 const headerStore = useHeaderStore();
 

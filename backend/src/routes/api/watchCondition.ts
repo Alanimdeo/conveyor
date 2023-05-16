@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { isWatchCondition, isWatchConditionPreset } from "../../modules/db";
+import { isWatchCondition, isWatchConditionPreset } from "@conveyor/types";
 import { initializeWatcher } from "../../modules/watcher";
 import { forceJSON } from "../../middlewares/forceJSON";
 import { isLoggedIn } from "../../middlewares/auth";

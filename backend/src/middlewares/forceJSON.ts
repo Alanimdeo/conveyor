@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 export function forceJSON(req: Request, res: Response, next: NextFunction) {
   if (req.headers["content-type"] !== "application/json") {

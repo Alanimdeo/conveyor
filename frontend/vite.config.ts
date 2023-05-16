@@ -27,7 +27,10 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../backend/dist/public",
+    outDir: "../dist/public",
+    // rollupOptions: {
+    //   external: ["@conveyor/types"],
+    // },
   },
   server: {
     proxy: {

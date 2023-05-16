@@ -22,7 +22,7 @@ async function main() {
   try {
     await alterDatabase(process.env.DB_FILE);
   } catch (err) {
-    console.error(err instanceof Error ? err.message : err, "Skipping.");
+    console.error("Skipping:", err instanceof Error ? err.message : err);
   }
 
   const db = await loadDatabase(process.env.DB_FILE, true);
@@ -43,7 +43,7 @@ async function main() {
 
   server.get("/favicon.ico", (_, res) => res.status(204).send());
 
-  server.use(express.static(path.join(__dirname, "public")));
+  server.use(express.static(path.join(__dirname, "../public")));
   server.use(
     "/api",
     (req, _, next) => {
@@ -55,7 +55,7 @@ async function main() {
   );
 
   server.get("/*", (_, res) => {
-    res.sendFile(path.join(__dirname, "public/index.html"));
+    res.sendFile(path.join(__dirname, "../public/index.html"));
   });
 
   server.use((_, __, next) => {

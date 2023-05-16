@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 export function checkId(req: Request, res: Response, next: NextFunction) {
   const id = Number(req.params.id);

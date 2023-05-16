@@ -119,8 +119,7 @@
 import { ref, watch } from "vue";
 import { Delete, Edit, Plus } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
-import { WatchType } from "@/types";
-import type { RenamePattern, WatchConditionPreset, WatchDirectoryPreset } from "@/types";
+import type { RenamePattern, WatchConditionPreset, WatchDirectoryPreset } from "@conveyor/types";
 import WatchDirectoryDialog from "@/components/WatchDirectoryDialog.vue";
 import WatchConditionDialog from "@/components/WatchConditionDialog.vue";
 import RemoveDialog from "@/components/RemoveDialog.vue";
@@ -216,7 +215,7 @@ const watchConditionDialogTexts = {
 const selectedWatchConditionPreset = ref<{ id?: number } & Omit<WatchConditionPreset, "id">>({
   name: "",
   enabled: true,
-  type: WatchType.All,
+  type: "all",
   priority: 0,
   useRegExp: false,
   pattern: "",
@@ -238,7 +237,7 @@ function openCreateWatchConditionDialog() {
   selectedWatchConditionPreset.value = {
     name: "",
     enabled: true,
-    type: WatchType.All,
+    type: "all",
     priority: 0,
     useRegExp: false,
     pattern: "",

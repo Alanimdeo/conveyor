@@ -1,32 +1,32 @@
 {
-  "name": "conveyor-backend",
+  "name": "@conveyor/backend",
   "version": "0.8.2",
   "author": "Alanimdeo <alan@imdeo.kr>",
   "license": "MIT",
   "private": false,
   "scripts": {
-    "start": "supervisor dist/index.js",
-    "pretest": "tsc",
-    "test": "node dist/index.js",
-    "dev": "supervisor -w 'src,dist/public' -e 'ts,html' --exec yarn test",
-    "prebuild": "rm -rf dist && yarn && cd ../frontend && yarn && yarn build && cd ../backend",
+    "start": "nodemon src/index.ts",
+    "dev": "nodemon src/index.ts",
+    "prebuild": "yarn",
     "build": "tsc",
-    "postbuild": "node scripts/postBuild.js",
-    "alteration": "node dist/alteration/index.js"
+    "alteration": "node dist/alteration/index.js",
+    "update-deps": "ncu -u && yarn"
   },
   "dependencies": {
+    "@conveyor/types": "*",
     "argon2": "^0.30.3",
     "chokidar": "^3.5.3",
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
+    "cookie-parser": "~1.4.6",
+    "debug": "~4.3.4",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
     "http-errors": "^2.0.0",
     "luxon": "^3.3.0",
     "memorystore": "^1.6.7",
-    "morgan": "~1.9.1",
-    "semver": "^7.4.0",
+    "morgan": "~1.10.0",
+    "nodemon": "^2.0.22",
+    "semver": "^7.5.1",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
@@ -36,9 +36,11 @@
     "@types/http-errors": "^2.0.1",
     "@types/luxon": "^3.3.0",
     "@types/morgan": "^1.9.4",
-    "@types/node": "^18.15.11",
-    "@types/semver": "^7.3.13",
-    "supervisor": "^0.12.0",
-    "typescript": "^5.0.3"
+    "@types/node": "^20.1.4",
+    "@types/semver": "^7.5.0",
+    "npm-check-updates": "^16.10.12",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.0.4"
   }
 }

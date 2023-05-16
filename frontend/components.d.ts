@@ -41,7 +41,6 @@ declare module '@vue/runtime-core' {
     Header: typeof import('./src/components/Header.vue')['default']
     PresetDialog: typeof import('./src/components/PresetDialog.vue')['default']
     RemoveDialog: typeof import('./src/components/RemoveDialog.vue')['default']
-    RemoveWatchDirectoryDialog: typeof import('./src/components/RemoveWatchDirectoryDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     VXIcon: typeof import('./src/components/VXIcon.vue')['default']
