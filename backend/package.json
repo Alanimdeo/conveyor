@@ -7,7 +7,6 @@
   "scripts": {
     "start": "nodemon src/index.ts",
     "dev": "nodemon src/index.ts",
-    "prebuild": "yarn",
     "build": "tsc",
     "alteration": "node dist/alteration/index.js",
     "update-deps": "ncu -u && yarn"

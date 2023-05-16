@@ -6,7 +6,6 @@
   "private": false,
   "scripts": {
     "dev": "yarn && vite --host",
-    "prebuild": "yarn",
     "build": "run-p type-check build-only",
     "preview": "vite preview",
     "build-only": "vite build --emptyOutDir",

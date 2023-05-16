@@ -9,7 +9,7 @@
     "frontend": "yarn workspace @conveyor/frontend",
     "types": "yarn workspace @conveyor/types",
     "dev": "yarn workspaces run dev",
-    "prebuild": "rm -rf dist && yarn types build",
+    "prebuild": "rm -rf dist && yarn",
     "build": "yarn workspaces run build",
     "postbuild": "node scripts/postBuild.js",
     "update-deps": "yarn workspaces run update-deps",
