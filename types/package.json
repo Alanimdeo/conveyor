@@ -1,0 +1,16 @@
+{
+  "name": "@conveyor/types",
+  "version": "0.1.0",
+  "author": "Alanimdeo <alan@imdeo.kr>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "update-deps": "ncu -u && yarn"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "devDependencies": {
+    "npm-check-updates": "^16.10.12",
+    "typescript": "^5.0.4"
+  }
+}

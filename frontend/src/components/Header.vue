@@ -1,7 +1,7 @@
 <template>
   <ElHeader>
     <ElMenu :default-active="activeIndex" mode="horizontal" :ellipsis="false" router>
-      <div class="logo" @click="$router.push('/')">
+      <div class="logo" @click="router.push('/')">
         <img src="/logo.svg" alt="logo" :class="['logo-img', headerStore.isDark ? 'white' : null]" />
         <p class="logo-title">Conveyor</p>
       </div>
@@ -16,7 +16,7 @@
         <ElIcon class="button" :size="20" @click="settingsDialog = true">
           <Setting />
         </ElIcon>
-        <ElIcon class="button" :size="20" @click="$router.push({ name: 'logout' })">
+        <ElIcon class="button" :size="20" @click="router.push({ name: 'logout' })">
           <SwitchButton />
         </ElIcon>
       </div>
@@ -37,7 +37,14 @@
     </div>
     <div>
       <p>로그 날짜 표시 형식</p>
-      <ElInput v-model="logDateFormat" />
+      <ElAlert type="info" show-icon :closable="false" style="margin-bottom: 10px">
+        <span>
+          날짜 포맷은
+          <a href="https://moment.github.io/luxon/index.html#/formatting?id=table-of-tokens" target="_blank">이곳</a>을
+          참고하세요.
+        </span>
+      </ElAlert>
+      <ElInput v-model="logDateFormat" placeholder="yyyy-MM-dd hh:mm:ss a" />
     </div>
     <div>
       <p>계정</p>
@@ -80,10 +87,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
 import { Moon, Sunny, SwitchButton, Setting } from "@element-plus/icons-vue";
 import { useHeaderStore } from "@/stores/header";
-import { ElMessage } from "element-plus";
+
+const router = useRouter();
 
 const headerStore = useHeaderStore();
 
@@ -99,12 +109,19 @@ const password = ref("");
 const newPassword = ref("");
 const newPasswordConfirm = ref("");
 
-await fetch("/api/settings")
-  .then((res) => res.json())
-  .then((res) => {
-    logDateFormat.value = res.dateFormat;
-    logDateFormatInitial.value = res.dateFormat;
-  });
+const loadSettings = async () =>
+  await fetch("/api/settings")
+    .then((res) => res.json())
+    .then((res) => {
+      logDateFormat.value = res.dateFormat;
+      logDateFormatInitial.value = res.dateFormat;
+    });
+
+watch(settingsDialog, (value) => {
+  if (value) {
+    loadSettings();
+  }
+});
 
 await fetch("/api/user")
   .then((res) => res.json())
@@ -187,6 +204,8 @@ async function changeUserInfo() {
     ElMessage.error("알 수 없는 오류가 발생했습니다.");
   }
 }
+
+await loadSettings();
 </script>
 
 <style scoped>

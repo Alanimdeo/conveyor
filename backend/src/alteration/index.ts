@@ -3,13 +3,24 @@ import { cp, readdir } from "fs/promises";
 import semver from "semver";
 import { CONVEYOR_DEFAULT_DATABASE_PATH, Database } from "../modules/db";
 
+export function getVersion(file: string) {
+  if (file.endsWith(".js")) {
+    return path.basename(file, ".js");
+  }
+  if (file.endsWith(".ts")) {
+    return path.basename(file, ".ts");
+  }
+  return file;
+}
+
 export async function alterDatabase(databasePath: string = CONVEYOR_DEFAULT_DATABASE_PATH) {
   const db = new Database(databasePath);
 
   const currentVersion = (await db.get<{ value: string }>("SELECT value FROM info WHERE key = 'version'")).value;
+  console.log(`Current database version: ${currentVersion}`);
 
-  const scripts = (await readdir("./dist/alteration/scripts"))
-    .map((version) => path.basename(version, ".js"))
+  const scripts = (await readdir(__dirname + "/scripts"))
+    .map(getVersion)
     .filter((version) => semver.gt(version, currentVersion))
     .sort(semver.compare);
 
@@ -23,7 +34,7 @@ export async function alterDatabase(databasePath: string = CONVEYOR_DEFAULT_DATA
     console.log(`Backing up database to ${databasePath}.${currentVersion}.bak`);
     await cp(databasePath, `${databasePath}.${currentVersion}.bak`);
     console.log(`Upgrading to v${script}`);
-    const { upgrade } = await import(`./scripts/${script}`);
+    const { upgrade } = await import(`${__dirname}/scripts/${script}`);
     await upgrade(db);
   }
 }

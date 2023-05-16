@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { Delete, Edit, Plus, Files } from "@element-plus/icons-vue";
-import type { WatchDirectory, WatchDirectoryPreset } from "@/types";
+import type { WatchDirectory, WatchDirectoryPreset } from "@conveyor/types";
 import { useRouter } from "vue-router";
 import { computed, h, ref } from "vue";
 import type { Ref } from "vue";

@@ -1,8 +1,17 @@
 import { existsSync, readdirSync } from "fs";
-import { DateTime } from "luxon";
 import path from "path";
-import semver from "semver";
 import sqlite from "sqlite3";
+import semver from "semver";
+import { DateTime } from "luxon";
+import type {
+  Log,
+  LogSearchOption,
+  WatchCondition,
+  WatchConditionPreset,
+  WatchDirectory,
+  WatchDirectoryPreset,
+} from "@conveyor/types";
+import { getVersion } from "../alteration";
 
 export class Database {
   version: string;
@@ -301,7 +310,7 @@ export class Database {
       }
       return log;
     });
-    return result;
+    return result as Log<string>[];
   }
   private getLogCondition(options?: LogSearchOption) {
     const option: string[] = [];
@@ -411,116 +420,6 @@ export class Database {
   }
 }
 
-export type WatchDirectory = {
-  id: number;
-  name: string;
-  enabled: boolean;
-  path: string;
-  recursive: boolean;
-  usePolling: boolean;
-  interval?: number;
-  ignoreDotFiles: boolean;
-};
-
-export type WatchDirectoryPreset = WatchDirectory;
-
-export function isWatchDirectory(obj: any): obj is Omit<WatchDirectory, "id"> {
-  return (
-    typeof obj.enabled === "boolean" &&
-    typeof obj.name === "string" &&
-    typeof obj.path === "string" &&
-    typeof obj.recursive === "boolean" &&
-    typeof obj.usePolling === "boolean" &&
-    (obj.interval === undefined || typeof obj.interval === "number") &&
-    typeof obj.ignoreDotFiles === "boolean"
-  );
-}
-
-export function isWatchDirectoryPreset(obj: any): obj is Omit<WatchDirectoryPreset, "id"> {
-  return isWatchDirectory(obj);
-}
-
-export type WatchCondition = {
-  id: number;
-  name: string;
-  directoryId: number;
-  enabled: boolean;
-  priority: number;
-  type: "file" | "directory" | "all";
-  useRegExp: boolean;
-  pattern: string;
-  destination: string;
-  delay: number;
-  renamePattern?: RenamePattern;
-};
-
-export type WatchConditionPreset = Omit<WatchCondition, "directoryId">;
-
-export function isWatchCondition(obj: any): obj is Omit<WatchCondition, "id"> {
-  return (
-    typeof obj.directoryId === "number" &&
-    typeof obj.name === "string" &&
-    typeof obj.enabled === "boolean" &&
-    typeof obj.priority === "number" &&
-    (obj.type === "file" || obj.type === "directory" || obj.type === "all") &&
-    typeof obj.useRegExp === "boolean" &&
-    typeof obj.pattern === "string" &&
-    typeof obj.destination === "string" &&
-    typeof obj.delay === "number" &&
-    (obj.renamePattern === undefined || isRenamePattern(obj.renamePattern))
-  );
-}
-
-export function isWatchConditionPreset(obj: any): obj is Omit<WatchConditionPreset, "id"> {
-  return (
-    typeof obj.name === "string" &&
-    typeof obj.enabled === "boolean" &&
-    typeof obj.priority === "number" &&
-    (obj.type === "file" || obj.type === "directory" || obj.type === "all") &&
-    typeof obj.useRegExp === "boolean" &&
-    typeof obj.pattern === "string" &&
-    typeof obj.destination === "string" &&
-    typeof obj.delay === "number" &&
-    (obj.renamePattern === undefined || isRenamePattern(obj.renamePattern))
-  );
-}
-
-export type RenamePattern = {
-  useRegExp: boolean;
-  pattern: string;
-  replaceValue: string;
-  excludeExtension: boolean;
-};
-
-export function isRenamePattern(obj: any): obj is RenamePattern {
-  return (
-    typeof obj.useRegExp === "boolean" &&
-    typeof obj.pattern === "string" &&
-    typeof obj.replaceValue === "string" &&
-    typeof obj.excludeExtension === "boolean"
-  );
-}
-
-export type Log = {
-  id: number;
-  date: number | string;
-  directoryId: number;
-  conditionId: number;
-  message: string;
-};
-
-export type LogSearchOption = {
-  id?: number;
-  limit?: number;
-  offset?: number;
-  date?: {
-    from: Date | number;
-    to: Date | number;
-  };
-  directoryId?: number[];
-  conditionId?: number[];
-};
-
 export const CONVEYOR_DEFAULT_DATABASE_PATH = "/conveyor/config/database.sqlite";
 
 export async function loadDatabase(databasePath: string = CONVEYOR_DEFAULT_DATABASE_PATH, create: boolean = false) {
@@ -543,9 +442,7 @@ async function initializeTables(db: Database) {
 }
 
 function getLatestDatabaseVersion() {
-  return readdirSync(path.join(__dirname, "../alteration/scripts"))
-    .map((version) => path.basename(version, ".js"))
-    .sort(semver.rcompare)[0];
+  return readdirSync(path.join(__dirname, "../alteration/scripts")).map(getVersion).sort(semver.rcompare)[0];
 }
 
 const createTable: {

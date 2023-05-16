@@ -245,14 +245,13 @@ import { useRoute, useRouter } from "vue-router";
 import { isEqual } from "lodash";
 import { ElMessage } from "element-plus";
 import { Check, Delete, Edit, Plus, Files } from "@element-plus/icons-vue";
-import { WatchType } from "@/types";
 import type {
   WatchDirectory,
   WatchCondition,
   RenamePattern,
   WatchDirectoryPreset,
   WatchConditionPreset,
-} from "@/types";
+} from "@conveyor/types";
 import WatchConditionDialog from "@/components/WatchConditionDialog.vue";
 import RemoveDialog from "@/components/RemoveDialog.vue";
 import PresetDialog from "@/components/PresetDialog.vue";
@@ -388,7 +387,7 @@ const createConditionOptions: Ref<{ id?: number } & Omit<WatchCondition, "id">> 
   directoryId: directoryId,
   enabled: true,
   priority: 0,
-  type: WatchType.All,
+  type: "all",
   useRegExp: false,
   pattern: "",
   destination: "",
@@ -409,7 +408,7 @@ function openCreateDialog() {
     directoryId: directoryId,
     enabled: true,
     priority: 0,
-    type: WatchType.All,
+    type: "all",
     useRegExp: false,
     pattern: "",
     destination: "",

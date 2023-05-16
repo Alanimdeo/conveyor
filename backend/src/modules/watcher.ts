@@ -1,7 +1,8 @@
-import chokidar from "chokidar";
-import { Database, WatchDirectory } from "./db";
-import path from "path";
 import { mkdir, rename } from "fs/promises";
+import path from "path";
+import chokidar from "chokidar";
+import type { WatchDirectory } from "@conveyor/types";
+import { Database } from "./db";
 
 export const ignoreDotFiles = /(^|[\/\\])\../;
 

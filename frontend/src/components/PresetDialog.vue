@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import type { WatchConditionPreset, WatchDirectoryPreset } from "@/types";
+import type { WatchConditionPreset, WatchDirectoryPreset } from "@conveyor/types";
 import { ElMessage } from "element-plus";
 import { computed, ref, watch } from "vue";
 
