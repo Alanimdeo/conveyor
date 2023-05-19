@@ -8,16 +8,22 @@
     "backend": "yarn workspace @conveyor/backend",
     "frontend": "yarn workspace @conveyor/frontend",
     "types": "yarn workspace @conveyor/types",
-    "dev": "yarn workspaces run dev",
+    "predev": "yarn",
+    "dev": "run-p -l '{frontend,backend,types} dev'",
     "prebuild": "rm -rf dist && yarn",
-    "build": "yarn workspaces run build",
+    "build": "run-p -l '{frontend,backend,types} build'",
     "postbuild": "node scripts/postBuild.js",
-    "update-deps": "yarn workspaces run update-deps",
+    "update-deps": "run-p -l '{frontend,backend,types} update-deps'",
     "precommit": "node scripts/preCommit.js"
   },
   "workspaces": [
     "types",
     "backend",
     "frontend"
-  ]
+  ],
+  "devDependencies": {
+    "npm-check-updates": "^16.10.12",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.0.4"
+  }
 }
