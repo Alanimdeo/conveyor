@@ -1,6 +1,7 @@
 import { mkdir, rename } from "fs/promises";
 import path from "path";
 import chokidar from "chokidar";
+import { Database as SqliteDatabaseType } from "better-sqlite3";
 import type { WatchDirectory } from "@conveyor/types";
 import { Database } from "./db";
 
@@ -12,7 +13,7 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
   if (!watchDirectory.enabled) {
     throw new Error("Not enabled.");
   }
-  const watchConditions = await db.getWatchConditions(watchDirectory.id);
+  const watchConditions = db.getWatchConditions(watchDirectory.id);
   if (watchConditions.length === 0 || !watchConditions.some((condition) => condition.enabled)) {
     throw new Error("No active conditions found.");
   }
@@ -39,7 +40,7 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
   watcher.on("change", async (file) => await handleAddEvent(file, "file"));
 
   async function handleAddEvent(file: string, type: "file" | "directory") {
-    const matchedCondition = await getConditionMatch(file, type);
+    const matchedCondition = getConditionMatch(file, type);
     const originalFilename = path.basename(file);
     let filename = originalFilename;
     if (!matchedCondition) {
@@ -62,7 +63,7 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
       logMessage = `Skipping ${originalFilename} as it is already in the destination folder.`;
 
       console.log(logMessage);
-      await db.createLog({
+      db.createLog({
         directoryId: watchDirectory.id,
         conditionId: matchedCondition.id,
         message: logMessage,
@@ -86,15 +87,15 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
     await rename(file, path.join(matchedCondition.destination, filename));
 
     console.log(logMessage);
-    await db.createLog({
+    db.createLog({
       directoryId: watchDirectory.id,
       conditionId: matchedCondition.id,
       message: logMessage,
     });
   }
 
-  async function getConditionMatch(file: string, type: "file" | "directory") {
-    const watchConditions = await db.getWatchConditions(watchDirectory.id);
+  function getConditionMatch(file: string, type: "file" | "directory") {
+    const watchConditions = db.getWatchConditions(watchDirectory.id);
     const filename = path.basename(file);
     const matches = watchConditions
       .filter((condition) => {
@@ -117,7 +118,7 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
 export async function initializeWatchers(db: Database) {
   const watchers: Record<number, chokidar.FSWatcher> = {};
 
-  const watchDirectories = await db.getWatchDirectories();
+  const watchDirectories = db.getWatchDirectories();
   for (const watchDirectory of watchDirectories) {
     try {
       watchers[watchDirectory.id] = await initializeWatcher(watchDirectory, db);

@@ -7,18 +7,18 @@ import { checkDirectoryId, checkId } from "../../middlewares/checkId";
 
 const router = Router();
 
-router.get("/watch-condition", isLoggedIn, async (req, res) => {
-  res.json(await req.db.getWatchConditions());
+router.get("/watch-condition", isLoggedIn, (req, res) => {
+  res.json(req.db.getWatchConditions());
 });
 
-router.get("/watch-condition/count", isLoggedIn, async (req, res) => {
-  const count = await req.db.getWatchConditionCount();
+router.get("/watch-condition/count", isLoggedIn, (req, res) => {
+  const count = req.db.getWatchConditionCount();
   res.json(count);
 });
 
-router.get("/watch-condition/:id", isLoggedIn, checkId, async (req, res) => {
+router.get("/watch-condition/:id", isLoggedIn, checkId, (req, res) => {
   const id = Number(req.params.id);
-  const condition = await req.db.getWatchCondition(id);
+  const condition = req.db.getWatchCondition(id);
   if (!condition) {
     res.status(404).json({ error: "Condition not found" });
     return;
@@ -28,7 +28,7 @@ router.get("/watch-condition/:id", isLoggedIn, checkId, async (req, res) => {
 
 router.post("/watch-condition/:directoryId", isLoggedIn, checkDirectoryId, forceJSON, async (req, res) => {
   const directoryId = Number(req.params.directoryId);
-  const directory = await req.db.getWatchDirectoryById(directoryId);
+  const directory = req.db.getWatchDirectoryById(directoryId);
   if (!directory) {
     res.status(404).json({ error: "Directory not found" });
     return;
@@ -38,16 +38,16 @@ router.post("/watch-condition/:directoryId", isLoggedIn, checkDirectoryId, force
     res.status(400).json({ error: "Invalid request" });
     return;
   }
-  await req.db.addWatchCondition(req.body);
-  if (directory.enabled && !req.watchers![directoryId]) {
-    req.watchers![directoryId] = await initializeWatcher(directory, req.db);
+  req.db.addWatchCondition(req.body);
+  if (directory.enabled && !req.watchers[directoryId]) {
+    req.watchers[directoryId] = await initializeWatcher(directory, req.db);
   }
   res.status(200).json({ success: true });
 });
 
-router.patch("/watch-condition/:id", isLoggedIn, checkId, forceJSON, async (req, res) => {
+router.patch("/watch-condition/:id", isLoggedIn, checkId, forceJSON, (req, res) => {
   const id = Number(req.params.id);
-  const condition = await req.db.getWatchCondition(id);
+  const condition = req.db.getWatchCondition(id);
   if (!condition) {
     res.status(404).json({ error: "Condition not found" });
     return;
@@ -56,38 +56,38 @@ router.patch("/watch-condition/:id", isLoggedIn, checkId, forceJSON, async (req,
     res.status(400).json({ error: "Invalid request" });
     return;
   }
-  await req.db.updateWatchCondition(id, req.body);
-  const conditions = await req.db.getWatchConditions(condition.directoryId);
-  if (conditions.length === 0 && req.watchers![condition.directoryId]) {
-    req.watchers![condition.directoryId].close();
-    delete req.watchers![condition.directoryId];
+  req.db.updateWatchCondition(id, req.body);
+  const conditions = req.db.getWatchConditions(condition.directoryId);
+  if (conditions.length === 0 && req.watchers[condition.directoryId]) {
+    req.watchers[condition.directoryId].close();
+    delete req.watchers[condition.directoryId];
   }
   res.status(200).json({ success: true });
 });
 
-router.delete("/watch-condition/:id", isLoggedIn, checkId, async (req, res) => {
+router.delete("/watch-condition/:id", isLoggedIn, checkId, (req, res) => {
   const id = Number(req.params.id);
-  const condition = await req.db.getWatchCondition(id);
+  const condition = req.db.getWatchCondition(id);
   if (!condition) {
     res.status(404).json({ error: "Condition not found" });
     return;
   }
-  await req.db.removeWatchCondition(id);
-  const conditions = await req.db.getWatchConditions(condition.directoryId);
-  if (conditions.length === 0 && req.watchers![condition.directoryId]) {
-    req.watchers![condition.directoryId].close();
-    delete req.watchers![condition.directoryId];
+  req.db.removeWatchCondition(id);
+  const conditions = req.db.getWatchConditions(condition.directoryId);
+  if (conditions.length === 0 && req.watchers[condition.directoryId]) {
+    req.watchers[condition.directoryId].close();
+    delete req.watchers[condition.directoryId];
   }
   res.status(200).json({ success: true });
 });
 
-router.get("/watch-condition-preset", isLoggedIn, async (req, res) => {
-  res.json(await req.db.getWatchConditionPresets());
+router.get("/watch-condition-preset", isLoggedIn, (req, res) => {
+  res.json(req.db.getWatchConditionPresets());
 });
 
-router.get("/watch-condition-preset/:id", isLoggedIn, checkId, async (req, res) => {
+router.get("/watch-condition-preset/:id", isLoggedIn, checkId, (req, res) => {
   const id = Number(req.params.id);
-  const preset = await req.db.getWatchConditionPreset(id);
+  const preset = req.db.getWatchConditionPreset(id);
   if (!preset) {
     res.status(404).json({ error: "Preset not found" });
     return;
@@ -95,18 +95,18 @@ router.get("/watch-condition-preset/:id", isLoggedIn, checkId, async (req, res) 
   res.json(preset);
 });
 
-router.post("/watch-condition-preset", isLoggedIn, forceJSON, async (req, res) => {
+router.post("/watch-condition-preset", isLoggedIn, forceJSON, (req, res) => {
   if (!isWatchConditionPreset(req.body)) {
     res.status(400).json({ error: "Invalid request" });
     return;
   }
-  await req.db.addWatchConditionPreset(req.body);
+  req.db.addWatchConditionPreset(req.body);
   res.status(200).json({ success: true });
 });
 
-router.patch("/watch-condition-preset/:id", isLoggedIn, checkId, forceJSON, async (req, res) => {
+router.patch("/watch-condition-preset/:id", isLoggedIn, checkId, forceJSON, (req, res) => {
   const id = Number(req.params.id);
-  const preset = await req.db.getWatchConditionPreset(id);
+  const preset = req.db.getWatchConditionPreset(id);
   if (!preset) {
     res.status(404).json({ error: "Preset not found" });
     return;
@@ -115,18 +115,18 @@ router.patch("/watch-condition-preset/:id", isLoggedIn, checkId, forceJSON, asyn
     res.status(400).json({ error: "Invalid request" });
     return;
   }
-  await req.db.updateWatchConditionPreset(id, req.body);
+  req.db.updateWatchConditionPreset(id, req.body);
   res.status(200).json({ success: true });
 });
 
-router.delete("/watch-condition-preset/:id", isLoggedIn, checkId, async (req, res) => {
+router.delete("/watch-condition-preset/:id", isLoggedIn, checkId, (req, res) => {
   const id = Number(req.params.id);
-  const preset = await req.db.getWatchConditionPreset(id);
+  const preset = req.db.getWatchConditionPreset(id);
   if (!preset) {
     res.status(404).json({ error: "Preset not found" });
     return;
   }
-  await req.db.removeWatchConditionPreset(id);
+  req.db.removeWatchConditionPreset(id);
   res.status(200).json({ success: true });
 });
 

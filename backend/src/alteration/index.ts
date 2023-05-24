@@ -16,7 +16,7 @@ export function getVersion(file: string) {
 export async function alterDatabase(databasePath: string = CONVEYOR_DEFAULT_DATABASE_PATH) {
   const db = new Database(databasePath);
 
-  const currentVersion = (await db.get<{ value: string }>("SELECT value FROM info WHERE key = 'version'")).value;
+  const currentVersion = db.get<{ value: string }>("SELECT value FROM info WHERE key = 'version'").value;
   console.log(`Current database version: ${currentVersion}`);
 
   const scripts = (await readdir(__dirname + "/scripts"))
