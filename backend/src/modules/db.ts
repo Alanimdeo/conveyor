@@ -95,7 +95,8 @@ export class Database {
     if (directoryId) {
       sql += " WHERE directoryId=?";
     }
-    const result = this.all<WatchCondition[]>(sql, [directoryId]);
+    const params = directoryId ? [directoryId] : [];
+    const result = this.all<WatchCondition[]>(sql, params);
     return result.map(this.booleanizeWatchCondition);
   }
   getWatchCondition(id: number) {
@@ -397,6 +398,7 @@ export class Database {
   }
   all<T = unknown[]>(sql: string, params: any[] = []) {
     params = params.map(this.booleanToNumber);
+    console.log(sql, params);
     const result = this.db.prepare(sql).all(...params);
     return result as T;
   }
