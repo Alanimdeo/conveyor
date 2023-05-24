@@ -500,9 +500,13 @@ const presetDialogMode = ref<"watch-directory" | "watch-condition">("watch-direc
 
 function onPresetSelect(preset: WatchDirectoryPreset | WatchConditionPreset) {
   if (presetDialogMode.value === "watch-directory") {
+    const { name } = watchDirectory.value;
     watchDirectory.value = Object.assign({}, preset as WatchDirectoryPreset);
+    watchDirectory.value.name = name;
   } else {
+    const { name } = createConditionOptions.value;
     createConditionOptions.value = Object.assign(createConditionOptions.value, preset as WatchConditionPreset);
+    createConditionOptions.value.name = name;
     if (createConditionOptions.value.destination === watchDirectory.value.path) {
       createConditionOptions.value.destination = "";
     }
