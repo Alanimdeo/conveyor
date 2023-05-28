@@ -4,14 +4,14 @@ import { isLoggedIn } from "../../middlewares/auth";
 
 const router = Router();
 
-router.post("/log", forceJSON, isLoggedIn, async (req, res) => {
-  const dateFormat = await req.db.getSettings().then((settings) => settings.dateFormat);
-  const logs = await req.db.getLogs(req.body, dateFormat);
+router.post("/log", forceJSON, isLoggedIn, (req, res) => {
+  const dateFormat = req.db.getSettings().dateFormat;
+  const logs = req.db.getLogs(req.body, dateFormat);
   res.json(logs);
 });
 
-router.post("/log/count", isLoggedIn, async (req, res) => {
-  const count = await req.db.getLogCount(req.body);
+router.post("/log/count", isLoggedIn, (req, res) => {
+  const count = req.db.getLogCount(req.body);
   res.json({ count });
 });
 

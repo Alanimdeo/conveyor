@@ -1,4 +1,4 @@
-import { mkdir, rename } from "fs/promises";
+import { mkdirSync, renameSync } from "fs";
 import path from "path";
 import chokidar from "chokidar";
 import type { WatchDirectory } from "@conveyor/types";
@@ -6,13 +6,11 @@ import { Database } from "./db";
 
 export const ignoreDotFiles = /(^|[\/\\])\../;
 
-const wait = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-export async function initializeWatcher(watchDirectory: WatchDirectory, db: Database) {
+export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) {
   if (!watchDirectory.enabled) {
     throw new Error("Not enabled.");
   }
-  const watchConditions = await db.getWatchConditions(watchDirectory.id);
+  const watchConditions = db.getWatchConditions(watchDirectory.id);
   if (watchConditions.length === 0 || !watchConditions.some((condition) => condition.enabled)) {
     throw new Error("No active conditions found.");
   }
@@ -34,12 +32,12 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
     );
   });
 
-  watcher.on("add", async (file) => await handleAddEvent(file, "file"));
-  watcher.on("addDir", async (file) => await handleAddEvent(file, "directory"));
-  watcher.on("change", async (file) => await handleAddEvent(file, "file"));
+  watcher.on("add", (file) => handleAddEvent(file, "file"));
+  watcher.on("addDir", (file) => handleAddEvent(file, "directory"));
+  watcher.on("change", (file) => handleAddEvent(file, "file"));
 
-  async function handleAddEvent(file: string, type: "file" | "directory") {
-    const matchedCondition = await getConditionMatch(file, type);
+  function handleAddEvent(file: string, type: "file" | "directory") {
+    const matchedCondition = getConditionMatch(file, type);
     const originalFilename = path.basename(file);
     let filename = originalFilename;
     if (!matchedCondition) {
@@ -58,18 +56,21 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
     }
 
     let logMessage = "";
-    if (watchDirectory.path === matchedCondition.destination && filename === originalFilename) {
+    if (
+      (watchDirectory.path === "$" || watchDirectory.path === matchedCondition.destination) &&
+      filename === originalFilename
+    ) {
       logMessage = `Skipping ${originalFilename} as it is already in the destination folder.`;
 
       console.log(logMessage);
-      await db.createLog({
+      db.createLog({
         directoryId: watchDirectory.id,
         conditionId: matchedCondition.id,
         message: logMessage,
       });
       return;
     }
-    if (watchDirectory.path === matchedCondition.destination) {
+    if (watchDirectory.path === "$" || watchDirectory.path === matchedCondition.destination) {
       logMessage = `Renaming ${originalFilename} to ${filename}`;
     } else {
       logMessage = `Moving ${originalFilename} to ${matchedCondition.destination}`;
@@ -78,27 +79,29 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
       }
     }
 
-    if (matchedCondition.delay > 0) {
-      await wait(matchedCondition.delay);
+    const destination = matchedCondition.destination === "$" ? watchDirectory.path : matchedCondition.destination;
+
+    setTimeout(move, matchedCondition.delay);
+
+    function move() {
+      mkdirSync(destination, { recursive: true });
+      renameSync(file, path.join(destination, filename));
+
+      console.log(logMessage);
+      db.createLog({
+        directoryId: watchDirectory.id,
+        conditionId: matchedCondition!.id,
+        message: logMessage,
+      });
     }
-
-    await mkdir(matchedCondition.destination, { recursive: true });
-    await rename(file, path.join(matchedCondition.destination, filename));
-
-    console.log(logMessage);
-    await db.createLog({
-      directoryId: watchDirectory.id,
-      conditionId: matchedCondition.id,
-      message: logMessage,
-    });
   }
 
-  async function getConditionMatch(file: string, type: "file" | "directory") {
-    const watchConditions = await db.getWatchConditions(watchDirectory.id);
+  function getConditionMatch(file: string, type: "file" | "directory") {
+    const watchConditions = db.getWatchConditions(watchDirectory.id, { enabledOnly: true });
     const filename = path.basename(file);
     const matches = watchConditions
       .filter((condition) => {
-        if (!condition.enabled || (condition.type !== "all" && condition.type !== type)) {
+        if (condition.type !== "all" && condition.type !== type) {
           return false;
         }
         if (condition.useRegExp) {
@@ -114,13 +117,13 @@ export async function initializeWatcher(watchDirectory: WatchDirectory, db: Data
   return watcher;
 }
 
-export async function initializeWatchers(db: Database) {
+export function initializeWatchers(db: Database) {
   const watchers: Record<number, chokidar.FSWatcher> = {};
 
-  const watchDirectories = await db.getWatchDirectories();
+  const watchDirectories = db.getWatchDirectories();
   for (const watchDirectory of watchDirectories) {
     try {
-      watchers[watchDirectory.id] = await initializeWatcher(watchDirectory, db);
+      watchers[watchDirectory.id] = initializeWatcher(watchDirectory, db);
     } catch (err) {
       console.log(`Skipping folder #${watchDirectory.id}: ${err instanceof Error ? err.message : err}`);
     }

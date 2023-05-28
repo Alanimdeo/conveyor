@@ -19,8 +19,8 @@ router.post("/login", forceJSON, isNotLoggedIn, async (req, res) => {
     res.status(400).json({ error: "Invalid request" });
     return;
   }
-  const adminId = await req.db.getAdminId();
-  const adminPasswordHash = await req.db.getAdminPasswordHash();
+  const adminId = req.db.getAdminId();
+  const adminPasswordHash = req.db.getAdminPasswordHash();
   if (username !== adminId || !(await argon2.verify(adminPasswordHash, password))) {
     res.status(401).json({ error: "Unauthorized" });
     return;
@@ -35,7 +35,7 @@ router.post("/logout", isLoggedIn, (req, res) => {
   });
 });
 
-router.get("/user", isLoggedIn, async (req, res) => {
+router.get("/user", isLoggedIn, (req, res) => {
   res.json({
     username: req.session.username,
   });
@@ -44,7 +44,7 @@ router.get("/user", isLoggedIn, async (req, res) => {
 router.patch("/user", isLoggedIn, forceJSON, async (req, res) => {
   const { username, password, newPassword } = req.body;
 
-  const adminPasswordHash = await req.db.getAdminPasswordHash();
+  const adminPasswordHash = req.db.getAdminPasswordHash();
   if (!password || !(await argon2.verify(adminPasswordHash, password))) {
     res.status(403).json({ error: "Invalid current password" });
     return;
@@ -55,11 +55,11 @@ router.patch("/user", isLoggedIn, forceJSON, async (req, res) => {
     return;
   }
   if (username) {
-    await req.db.setAdminId(username);
+    req.db.setAdminId(username);
     req.session.username = username;
   }
   if (newPassword) {
-    await req.db.setAdminPasswordHash(await argon2.hash(newPassword));
+    req.db.setAdminPasswordHash(await argon2.hash(newPassword));
   }
 
   res.json({ success: true });

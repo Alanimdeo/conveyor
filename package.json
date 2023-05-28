@@ -1,6 +1,6 @@
 {
   "name": "conveyor",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "author": "Alanimdeo <alan@imdeo.kr>",
   "private": true,
   "license": "MIT",
@@ -11,7 +11,7 @@
     "predev": "yarn",
     "dev": "run-p -l '{frontend,backend,types} dev'",
     "prebuild": "rm -rf dist && yarn",
-    "build": "run-p -l '{frontend,backend,types} build'",
+    "build": "yarn types build; run-p -l '{frontend,backend} build'",
     "postbuild": "node scripts/postBuild.js",
     "update-deps": "run-p -l '{frontend,backend,types} update-deps'",
     "precommit": "node scripts/preCommit.js"

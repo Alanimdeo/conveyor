@@ -65,7 +65,7 @@
           :loading="loading"
           :disabled="
             options.pattern == '' ||
-            (!noMove && options.destination == '') ||
+            options.destination == '' ||
             (hasRenamePattern && renamePattern.pattern == '') ||
             (hasRenamePattern && renamePattern.replaceValue == '')
           "
@@ -122,9 +122,11 @@ const hasRenamePattern = computed({
   set: (value) => emit("update:hasRenamePattern", value),
 });
 
-const noMove = ref(props.options.destination === "");
+const noMove = ref(props.options.destination === "$");
 watch(noMove, (value) => {
   if (value) {
+    props.options.destination = "$";
+  } else {
     props.options.destination = "";
   }
 });

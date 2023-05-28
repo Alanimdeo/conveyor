@@ -106,7 +106,7 @@
               <template #header>
                 <div class="card-header">
                   <div>
-                    <span class="card-title">{{ condition.name || "조건 " + (index + 1) }}</span>
+                    <span class="card-title">{{ condition.name || "이름 없는 조건" }}</span>
                     <ElTag v-if="condition.enabled" type="success">사용 중</ElTag>
                     <ElTag v-else type="danger">비활성화</ElTag>
                   </div>
@@ -149,9 +149,7 @@
                 </div>
                 <div>
                   <span>이동 경로: </span>
-                  <span>{{
-                    condition.destination === watchDirectory.path ? "이동 안 함" : condition.destination
-                  }}</span>
+                  <span>{{ condition.destination === "$" ? "이동 안 함" : condition.destination }}</span>
                 </div>
                 <div>
                   <span>이동 지연: </span>
@@ -197,9 +195,21 @@
     :name="selectedDirectoryName"
     :loading="removingDirectory"
     @confirm="removeDirectory()"
+  >
+    <template #message>
+      <span> 폴더를 삭제하시겠습니까? 이 작업은 해당 폴더 및 모든 하위 조건들을 삭제하며 되돌릴 수 없습니다!</span>
+    </template>
+  </RemoveDialog>
+
+  <RemoveDialog
+    v-model="removeConditionDialog"
+    title="조건 삭제"
+    :name="watchConditions.find((condition) => condition.id === removeConditionId)?.name || '이름 없는 조건'"
+    :loading="removingContition"
+    @confirm="removeCondition(removeConditionId)"
   />
 
-  <ElDialog v-model="removeConditionDialog" title="조건 삭제" style="max-width: 560px; width: 100%">
+  <!-- <ElDialog v-model="removeConditionDialog" title="조건 삭제" style="max-width: 560px; width: 100%">
     <span class="bold">조건 {{ removeConditionId + 1 }}</span>
     <span>을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</span>
 
@@ -207,7 +217,7 @@
       <ElButton @click="removeConditionDialog = false">취소</ElButton>
       <ElButton type="danger" @click="removeCondition(removeConditionId)" :loading="removingContition">삭제</ElButton>
     </template>
-  </ElDialog>
+  </ElDialog> -->
 
   <WatchConditionDialog
     v-model="createConditionDialog"
@@ -430,9 +440,6 @@ function editWatchCondition(id: number) {
     {},
     watchConditions.value.find((condition) => condition.id === id)
   );
-  if (createConditionOptions.value.destination === watchDirectory.value.path) {
-    createConditionOptions.value.destination = "";
-  }
   if (createConditionOptions.value.renamePattern) {
     createConditionRenamePattern.value = Object.assign({}, createConditionOptions.value.renamePattern);
     createConditionOptionsHasRenamePattern.value = true;
@@ -465,10 +472,6 @@ async function createCondition() {
       },
       body: JSON.stringify({
         ...createConditionOptions.value,
-        destination:
-          createConditionOptions.value.destination === ""
-            ? watchDirectory.value.path
-            : createConditionOptions.value.destination,
         renamePattern: createConditionOptionsHasRenamePattern.value ? createConditionRenamePattern.value : undefined,
       }),
     }
@@ -500,12 +503,13 @@ const presetDialogMode = ref<"watch-directory" | "watch-condition">("watch-direc
 
 function onPresetSelect(preset: WatchDirectoryPreset | WatchConditionPreset) {
   if (presetDialogMode.value === "watch-directory") {
+    const { name } = watchDirectory.value;
     watchDirectory.value = Object.assign({}, preset as WatchDirectoryPreset);
+    watchDirectory.value.name = name;
   } else {
+    const { name } = createConditionOptions.value;
     createConditionOptions.value = Object.assign(createConditionOptions.value, preset as WatchConditionPreset);
-    if (createConditionOptions.value.destination === watchDirectory.value.path) {
-      createConditionOptions.value.destination = "";
-    }
+    createConditionOptions.value.name = name;
     if (createConditionOptions.value.renamePattern) {
       createConditionRenamePattern.value = Object.assign(
         createConditionRenamePattern.value,

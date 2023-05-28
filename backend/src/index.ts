@@ -25,8 +25,8 @@ async function main() {
     console.error("Skipping:", err instanceof Error ? err.message : err);
   }
 
-  const db = await loadDatabase(process.env.DB_FILE, true);
-  const watchers = await initializeWatchers(db);
+  const db = loadDatabase(process.env.DB_FILE, true);
+  const watchers = initializeWatchers(db);
 
   server.use(logger("combined"));
   server.use(express.json());
