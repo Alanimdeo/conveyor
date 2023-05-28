@@ -41,6 +41,7 @@ export async function alterDatabase(databasePath: string = CONVEYOR_DEFAULT_DATA
       db.run("UPDATE info SET value = ? WHERE key = 'version'", [script]);
     } catch (err) {
       console.log(`Error upgrading to v${script}: ${err instanceof Error ? err.message : err}`);
+      break;
     }
   }
 }
