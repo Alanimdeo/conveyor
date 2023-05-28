@@ -36,7 +36,11 @@
     </ElCard>
   </div>
 
-  <RemoveDialog v-model="removeDialog" title="폴더 삭제" :name="selectedDirectoryName" @confirm="removeDirectory()" />
+  <RemoveDialog v-model="removeDialog" title="폴더 삭제" :name="selectedDirectoryName" @confirm="removeDirectory()">
+    <template #message>
+      <span> 폴더를 삭제하시겠습니까? 이 작업은 해당 폴더 및 모든 하위 조건들을 삭제하며 되돌릴 수 없습니다!</span>
+    </template>
+  </RemoveDialog>
 
   <WatchDirectoryDialog
     v-model="createDialog"

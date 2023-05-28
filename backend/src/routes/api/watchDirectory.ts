@@ -33,7 +33,9 @@ router.get("/watch-directory/:id/conditions", isLoggedIn, checkId, (req, res) =>
     res.status(404).json({ error: "Directory not found" });
     return;
   }
-  res.json(req.db.getWatchConditions(id));
+  const conditions = req.db.getWatchConditions(id);
+  conditions.sort((a, b) => a.priority - b.priority);
+  res.json(conditions);
 });
 
 router.post("/watch-directory", isLoggedIn, forceJSON, (req, res) => {
@@ -45,7 +47,7 @@ router.post("/watch-directory", isLoggedIn, forceJSON, (req, res) => {
   res.status(200).json({ success: true });
 });
 
-router.patch("/watch-directory/:id", isLoggedIn, checkId, forceJSON, async (req, res) => {
+router.patch("/watch-directory/:id", isLoggedIn, checkId, forceJSON, (req, res) => {
   const id = Number(req.params.id);
   const directory = req.db.getWatchDirectoryById(id);
   if (!directory) {
@@ -62,7 +64,7 @@ router.patch("/watch-directory/:id", isLoggedIn, checkId, forceJSON, async (req,
   }
   if (req.body.enabled) {
     try {
-      req.watchers[id] = await initializeWatcher(Object.assign(req.body, { id }), req.db);
+      req.watchers[id] = initializeWatcher(Object.assign(req.body, { id }), req.db);
     } catch (err) {
       if (!(err instanceof Error) || err.message !== "No active conditions found.") {
         console.error(err);
@@ -80,9 +82,6 @@ router.delete("/watch-directory/:id", isLoggedIn, checkId, (req, res) => {
     return;
   }
   req.db.removeWatchDirectory(id);
-  for (const condition of req.db.getWatchConditions(id)) {
-    req.db.removeWatchCondition(condition.id);
-  }
   if (req.watchers[id]) {
     req.watchers[id].close();
     delete req.watchers[id];

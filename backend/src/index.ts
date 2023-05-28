@@ -26,7 +26,7 @@ async function main() {
   }
 
   const db = loadDatabase(process.env.DB_FILE, true);
-  const watchers = await initializeWatchers(db);
+  const watchers = initializeWatchers(db);
 
   server.use(logger("combined"));
   server.use(express.json());

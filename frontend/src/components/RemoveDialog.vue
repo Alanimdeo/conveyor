@@ -1,7 +1,8 @@
 <template>
   <ElDialog v-model="opened" :title="title">
     <span class="bold">{{ name }}</span>
-    <span>을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!</span>
+    <slot v-if="$slots.message" name="message" />
+    <span v-else>을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!</span>
 
     <template #footer>
       <ElButton @click="opened = false">취소</ElButton>
@@ -31,6 +32,7 @@ const props = defineProps({
     required: false,
   },
 });
+// const slots = defineSlots();
 const emit = defineEmits(["update:modelValue", "confirm"]);
 
 const opened = computed({

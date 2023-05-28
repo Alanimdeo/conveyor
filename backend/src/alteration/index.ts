@@ -1,5 +1,5 @@
 import path from "path";
-import { cp, readdir } from "fs/promises";
+import { cpSync, readdirSync } from "fs";
 import semver from "semver";
 import { CONVEYOR_DEFAULT_DATABASE_PATH, Database } from "../modules/db";
 
@@ -14,12 +14,13 @@ export function getVersion(file: string) {
 }
 
 export async function alterDatabase(databasePath: string = CONVEYOR_DEFAULT_DATABASE_PATH) {
+  console.log("Database path:", databasePath);
   const db = new Database(databasePath);
 
   const currentVersion = db.get<{ value: string }>("SELECT value FROM info WHERE key = 'version'").value;
   console.log(`Current database version: ${currentVersion}`);
 
-  const scripts = (await readdir(__dirname + "/scripts"))
+  const scripts = readdirSync(__dirname + "/scripts")
     .map(getVersion)
     .filter((version) => semver.gt(version, currentVersion))
     .sort(semver.compare);
@@ -32,10 +33,15 @@ export async function alterDatabase(databasePath: string = CONVEYOR_DEFAULT_DATA
   console.log(`Found ${scripts.length} versions to upgrade to.`);
   for (const script of scripts) {
     console.log(`Backing up database to ${databasePath}.${currentVersion}.bak`);
-    await cp(databasePath, `${databasePath}.${currentVersion}.bak`);
+    cpSync(databasePath, `${databasePath}.${currentVersion}.bak`);
     console.log(`Upgrading to v${script}`);
     const { upgrade } = await import(`${__dirname}/scripts/${script}`);
-    await upgrade(db);
+    try {
+      upgrade(db);
+      db.run("UPDATE info SET value = ? WHERE key = 'version'", [script]);
+    } catch (err) {
+      console.log(`Error upgrading to v${script}: ${err instanceof Error ? err.message : err}`);
+    }
   }
 }
 

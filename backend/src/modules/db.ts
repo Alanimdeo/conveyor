@@ -16,12 +16,13 @@ import { getVersion } from "../alteration";
 
 export class Database {
   version: string;
-  private db: SqliteDatabaseType;
+  db: SqliteDatabaseType;
 
   constructor(filename: string, create: boolean = false) {
     this.version = getLatestDatabaseVersion();
     if (existsSync(filename)) {
       this.db = new SqliteDatabase(filename);
+      this.db.pragma("journal_mode = WAL");
       return;
     }
 
@@ -90,10 +91,17 @@ export class Database {
     }>("SELECT COUNT(*) AS count, COUNT(CASE WHEN enabled = 1 THEN 1 END) AS enabled FROM watch_conditions");
   }
 
-  getWatchConditions(directoryId?: number) {
+  getWatchConditions(directoryId?: number, options?: { enabledOnly?: boolean }) {
     let sql = "SELECT * FROM watch_conditions";
+    const conditions: string[] = [];
     if (directoryId) {
-      sql += " WHERE directoryId=?";
+      conditions.push("directoryId=?");
+    }
+    if (options?.enabledOnly) {
+      conditions.push("enabled=1");
+    }
+    if (conditions.length > 0) {
+      sql += ` WHERE ${conditions.join(" AND ")}`;
     }
     const params = directoryId ? [directoryId] : [];
     const result = this.all<WatchCondition[]>(sql, params);
@@ -171,6 +179,7 @@ export class Database {
     ]);
   }
   removeWatchDirectory(id: number) {
+    this.run("DELETE FROM watch_conditions WHERE directoryId=?", [id]);
     this.run("DELETE FROM watch_directories WHERE id=?", [id]);
   }
 
@@ -299,8 +308,6 @@ export class Database {
     sql += " ORDER BY id DESC";
     sql += suffix;
 
-    console.log(sql);
-
     const result = this.all<Log[]>(sql, params);
     result.map((log) => {
       if (typeof log.date === "number") {
@@ -398,7 +405,6 @@ export class Database {
   }
   all<T = unknown[]>(sql: string, params: any[] = []) {
     params = params.map(this.booleanToNumber);
-    console.log(sql, params);
     const result = this.db.prepare(sql).all(...params);
     return result as T;
   }
@@ -467,6 +473,6 @@ const createTable: {
     ),
   logs: async (db: Database) =>
     db.run(
-      "CREATE TABLE logs (id INTEGER PRIMARY KEY AUTOINCREMENT, date INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000), directoryId INTEGER NOT NULL, conditionId INTEGER NOT NULL, message TEXT NOT NULL, FOREIGN KEY(directoryId) REFERENCES watch_directories(id), FOREIGN KEY(conditionId) REFERENCES watch_conditions(id))"
+      "CREATE TABLE logs (id INTEGER PRIMARY KEY AUTOINCREMENT, date INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000), directoryId INTEGER NOT NULL, conditionId INTEGER NOT NULL, message TEXT NOT NULL)"
     ),
 };

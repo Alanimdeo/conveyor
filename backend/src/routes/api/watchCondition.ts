@@ -26,7 +26,7 @@ router.get("/watch-condition/:id", isLoggedIn, checkId, (req, res) => {
   res.json(condition);
 });
 
-router.post("/watch-condition/:directoryId", isLoggedIn, checkDirectoryId, forceJSON, async (req, res) => {
+router.post("/watch-condition/:directoryId", isLoggedIn, checkDirectoryId, forceJSON, (req, res) => {
   const directoryId = Number(req.params.directoryId);
   const directory = req.db.getWatchDirectoryById(directoryId);
   if (!directory) {
@@ -40,7 +40,7 @@ router.post("/watch-condition/:directoryId", isLoggedIn, checkDirectoryId, force
   }
   req.db.addWatchCondition(req.body);
   if (directory.enabled && !req.watchers[directoryId]) {
-    req.watchers[directoryId] = await initializeWatcher(directory, req.db);
+    req.watchers[directoryId] = initializeWatcher(directory, req.db);
   }
   res.status(200).json({ success: true });
 });
@@ -57,10 +57,12 @@ router.patch("/watch-condition/:id", isLoggedIn, checkId, forceJSON, (req, res) 
     return;
   }
   req.db.updateWatchCondition(id, req.body);
-  const conditions = req.db.getWatchConditions(condition.directoryId);
+  const conditions = req.db.getWatchConditions(condition.directoryId, { enabledOnly: true });
   if (conditions.length === 0 && req.watchers[condition.directoryId]) {
     req.watchers[condition.directoryId].close();
     delete req.watchers[condition.directoryId];
+  } else if (conditions.length > 0 && !req.watchers[condition.directoryId]) {
+    initializeWatcher(req.db.getWatchDirectoryById(condition.directoryId), req.db);
   }
   res.status(200).json({ success: true });
 });
