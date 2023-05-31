@@ -11,7 +11,7 @@ export function upgrade(db: Database) {
       .run();
     db.db.prepare("INSERT INTO logs SELECT * FROM _logs_old").run();
     db.db.prepare("DROP TABLE _logs_old").run();
-  });
+  })();
   db.run("PRAGMA foreign_keys = on");
 
   const watchDirectories = db.getWatchDirectories();
