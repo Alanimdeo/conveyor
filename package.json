@@ -13,7 +13,7 @@
     "prebuild": "rm -rf dist && yarn",
     "build": "yarn types build; run-p -l '{frontend,backend} build'",
     "postbuild": "node scripts/postBuild.js",
-    "update-deps": "run-p -l '{frontend,backend,types} update-deps'",
+    "update-deps": "run-p -l '{frontend,backend,types} update-deps' && yarn",
     "precommit": "node scripts/preCommit.js"
   },
   "workspaces": [
