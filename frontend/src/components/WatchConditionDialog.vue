@@ -36,7 +36,7 @@
       <ElFormItem v-if="!noMove" label="이동 경로">
         <ElInput v-model="options.destination" />
       </ElFormItem>
-      <ElFormItem label="이동 지연">
+      <ElFormItem label="이동 지연 (ms)">
         <ElInputNumber v-model="options.delay" :min="0" />
       </ElFormItem>
       <ElFormItem label="이름 변경 규칙">
