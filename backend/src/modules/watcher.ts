@@ -42,6 +42,7 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
   watcher.on("change", (file) => handleAddEvent(file, "file"));
 
   function handleAddEvent(file: string, type: "file" | "directory") {
+    file = file.normalize();
     const matchedCondition = getConditionMatch(file, type);
     if (!matchedCondition) {
       return;
