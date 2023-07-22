@@ -84,8 +84,12 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
     setTimeout(move, matchedCondition.delay);
 
     function move() {
-      mkdirSync(destination, { recursive: true });
-      renameSync(file, path.join(destination, filename));
+      try {
+        mkdirSync(destination, { recursive: true });
+        renameSync(file, path.join(destination, filename));
+      } catch (err) {
+        logMessage = `Error moving ${originalFilename} to ${destination}: ${err instanceof Error ? err.message : err}`;
+      }
 
       console.log(logMessage);
       db.createLog({
