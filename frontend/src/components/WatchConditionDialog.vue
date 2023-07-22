@@ -122,12 +122,20 @@ const hasRenamePattern = computed({
   set: (value) => emit("update:hasRenamePattern", value),
 });
 
-const noMove = ref(props.options.destination === "$");
+const noMove = ref(false);
 watch(noMove, (value) => {
   if (value) {
     props.options.destination = "$";
   } else {
     props.options.destination = "";
+  }
+});
+watch(opened, (value) => {
+  if (value && props.options.destination === "$") {
+    noMove.value = true;
+    props.options.destination = "$";
+  } else {
+    noMove.value = false;
   }
 });
 </script>

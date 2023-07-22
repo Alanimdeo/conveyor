@@ -209,16 +209,6 @@
     @confirm="removeCondition(removeConditionId)"
   />
 
-  <!-- <ElDialog v-model="removeConditionDialog" title="조건 삭제" style="max-width: 560px; width: 100%">
-    <span class="bold">조건 {{ removeConditionId + 1 }}</span>
-    <span>을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</span>
-
-    <template #footer>
-      <ElButton @click="removeConditionDialog = false">취소</ElButton>
-      <ElButton type="danger" @click="removeCondition(removeConditionId)" :loading="removingContition">삭제</ElButton>
-    </template>
-  </ElDialog> -->
-
   <WatchConditionDialog
     v-model="createConditionDialog"
     :loading="creatingCondition"
