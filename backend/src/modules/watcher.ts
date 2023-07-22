@@ -1,4 +1,5 @@
 import { mkdirSync, renameSync } from "fs";
+import { homedir } from "os";
 import path from "path";
 import chokidar from "chokidar";
 import type { WatchDirectory } from "@conveyor/types";
@@ -10,6 +11,10 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
   if (!watchDirectory.enabled) {
     throw new Error("Not enabled.");
   }
+
+  const homeDirectory = homedir();
+  watchDirectory.path = watchDirectory.path.replace("~", homeDirectory);
+
   const watchConditions = db.getWatchConditions(watchDirectory.id);
   if (watchConditions.length === 0 || !watchConditions.some((condition) => condition.enabled)) {
     throw new Error("No active conditions found.");
@@ -37,12 +42,15 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
   watcher.on("change", (file) => handleAddEvent(file, "file"));
 
   function handleAddEvent(file: string, type: "file" | "directory") {
+    file = file.normalize();
     const matchedCondition = getConditionMatch(file, type);
-    const originalFilename = path.basename(file);
-    let filename = originalFilename;
     if (!matchedCondition) {
       return;
     }
+    matchedCondition.destination = matchedCondition?.destination.replace("~", homeDirectory);
+
+    const originalFilename = path.basename(file);
+    let filename = originalFilename;
     if (matchedCondition.renamePattern) {
       let extension = "";
       if (matchedCondition.renamePattern.excludeExtension) {
@@ -84,8 +92,12 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
     setTimeout(move, matchedCondition.delay);
 
     function move() {
-      mkdirSync(destination, { recursive: true });
-      renameSync(file, path.join(destination, filename));
+      try {
+        mkdirSync(destination, { recursive: true });
+        renameSync(file, path.join(destination, filename));
+      } catch (err) {
+        logMessage = `Error moving ${originalFilename} to ${destination}: ${err instanceof Error ? err.message : err}`;
+      }
 
       console.log(logMessage);
       db.createLog({

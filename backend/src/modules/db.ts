@@ -155,7 +155,7 @@ export class Database {
     this.run(sql, [
       directory.name,
       directory.enabled,
-      directory.path,
+      directory.path.normalize,
       directory.recursive,
       directory.usePolling,
       directory.interval || null,
@@ -394,22 +394,29 @@ export class Database {
   }
 
   get<T = unknown>(sql: string, params: any[] = []) {
-    params = params.map(this.booleanToNumber);
-    const result = this.db.prepare(sql).get(...params);
+    params = params.map(this.normalize).map(this.booleanToNumber);
+    const result = this.db.prepare(sql.normalize()).get(...params);
     return result as T;
   }
   run(sql: string, params: any[] = []) {
-    params = params.map(this.booleanToNumber);
-    const result = this.db.prepare(sql).run(...params);
+    params = params.map(this.normalize).map(this.booleanToNumber);
+    const result = this.db.prepare(sql.normalize()).run(...params);
     return result;
   }
   all<T = unknown[]>(sql: string, params: any[] = []) {
-    params = params.map(this.booleanToNumber);
-    const result = this.db.prepare(sql).all(...params);
+    params = params.map(this.normalize).map(this.booleanToNumber);
+    const result = this.db.prepare(sql.normalize()).all(...params);
     return result as T;
   }
 
-  private booleanToNumber(value: boolean) {
+  private normalize(value: any) {
+    if (typeof value === "string") {
+      return value.normalize();
+    }
+    return value;
+  }
+
+  private booleanToNumber(value: any) {
     if (typeof value === "boolean") {
       return value ? 1 : 0;
     }
