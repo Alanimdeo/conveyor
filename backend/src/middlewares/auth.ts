@@ -2,6 +2,8 @@ import type { NextFunction, Request, Response } from "express";
 
 export function isLoggedIn(req: Request, res: Response, next: NextFunction) {
   if (req.session.username) {
+    // extend cookie expiration
+    req.session.time = Math.floor(Date.now() / 5 / 60 / 1000);
     next();
     return;
   }

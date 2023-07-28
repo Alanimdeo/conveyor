@@ -31,13 +31,15 @@ async function main() {
   server.use(logger("combined"));
   server.use(express.json());
   server.use(express.urlencoded({ extended: false }));
+
+  const cookieExpiration = Number(process.env.COOKIE_EXPIRATION) || 30 * 60 * 1000;
   server.use(
     session({
       secret: process.env.SESSION_SECRET || Math.random().toString(36).substring(2),
       resave: false,
       saveUninitialized: false,
-      store: new MemoryStore({ checkPeriod: 30 * 60 * 1000 }),
-      cookie: { maxAge: 30 * 60 * 1000 },
+      store: new MemoryStore({ checkPeriod: cookieExpiration }),
+      cookie: { maxAge: cookieExpiration },
     })
   );
 
