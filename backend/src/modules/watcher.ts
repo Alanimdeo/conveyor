@@ -1,4 +1,4 @@
-import { mkdirSync, renameSync } from "fs";
+import { mkdirSync, renameSync, statSync } from "fs";
 import { homedir } from "os";
 import path from "path";
 import chokidar from "chokidar";
@@ -41,71 +41,111 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
   watcher.on("addDir", (file) => handleAddEvent(file, "directory"));
   watcher.on("change", (file) => handleAddEvent(file, "file"));
 
+  const handling = new Set<string>();
+
   function handleAddEvent(file: string, type: "file" | "directory") {
+    if (handling.has(file)) {
+      return;
+    }
     file = file.normalize();
+    handling.add(file);
     const matchedCondition = getConditionMatch(file, type);
     if (!matchedCondition) {
       return;
     }
-    matchedCondition.destination = matchedCondition?.destination.replace("~", homeDirectory);
 
-    const originalFilename = path.basename(file);
-    let filename = originalFilename;
-    if (matchedCondition.renamePattern) {
-      let extension = "";
-      if (matchedCondition.renamePattern.excludeExtension) {
-        extension = path.extname(file);
-        filename = filename.replace(extension, "");
+    let interval: NodeJS.Timer | undefined;
+
+    interval = waitForUnchangingFileSize(file, (success: boolean) => {
+      if (interval) {
+        clearTimeout(interval);
       }
-      const pattern = matchedCondition.renamePattern.useRegExp
-        ? new RegExp(matchedCondition.renamePattern.pattern)
-        : matchedCondition.renamePattern.pattern;
-      filename = filename.replace(pattern, matchedCondition.renamePattern.replaceValue) + extension;
-    }
-
-    let logMessage = "";
-    if (
-      (watchDirectory.path === "$" || watchDirectory.path === matchedCondition.destination) &&
-      filename === originalFilename
-    ) {
-      logMessage = `Skipping ${originalFilename} as it is already in the destination folder.`;
-
-      console.log(logMessage);
-      db.createLog({
-        directoryId: watchDirectory.id,
-        conditionId: matchedCondition.id,
-        message: logMessage,
-      });
-      return;
-    }
-    if (watchDirectory.path === "$" || watchDirectory.path === matchedCondition.destination) {
-      logMessage = `Renaming ${originalFilename} to ${filename}`;
-    } else {
-      logMessage = `Moving ${originalFilename} to ${matchedCondition.destination}`;
-      if (filename !== originalFilename) {
-        logMessage += ` as ${filename}`;
+      if (!success) {
+        handling.delete(file);
+        return;
       }
-    }
+      matchedCondition.destination = matchedCondition?.destination.replace("~", homeDirectory);
 
-    const destination = matchedCondition.destination === "$" ? watchDirectory.path : matchedCondition.destination;
+      const originalFilename = path.basename(file);
+      let filename = originalFilename;
+      if (matchedCondition.renamePattern) {
+        let extension = "";
+        if (matchedCondition.renamePattern.excludeExtension) {
+          extension = path.extname(file);
+          filename = filename.replace(extension, "");
+        }
+        const pattern = matchedCondition.renamePattern.useRegExp
+          ? new RegExp(matchedCondition.renamePattern.pattern)
+          : matchedCondition.renamePattern.pattern;
+        filename = filename.replace(pattern, matchedCondition.renamePattern.replaceValue) + extension;
+      }
 
-    setTimeout(move, matchedCondition.delay);
+      let logMessage = "";
+      if (
+        (watchDirectory.path === "$" || watchDirectory.path === matchedCondition.destination) &&
+        filename === originalFilename
+      ) {
+        logMessage = `Skipping ${originalFilename} as it is already in the destination folder.`;
 
-    function move() {
+        console.log(logMessage);
+        db.createLog({
+          directoryId: watchDirectory.id,
+          conditionId: matchedCondition.id,
+          message: logMessage,
+        });
+        return;
+      }
+      if (watchDirectory.path === "$" || watchDirectory.path === matchedCondition.destination) {
+        logMessage = `Renaming ${originalFilename} to ${filename}`;
+      } else {
+        logMessage = `Moving ${originalFilename} to ${matchedCondition.destination}`;
+        if (filename !== originalFilename) {
+          logMessage += ` as ${filename}`;
+        }
+      }
+
+      const destination = matchedCondition.destination === "$" ? watchDirectory.path : matchedCondition.destination;
+
+      setTimeout(move, matchedCondition.delay);
+
+      function move() {
+        try {
+          mkdirSync(destination, { recursive: true });
+          renameSync(file, path.join(destination, filename));
+        } catch (err) {
+          logMessage = `Error moving ${originalFilename} to ${destination}: ${
+            err instanceof Error ? err.message : err
+          }`;
+        }
+
+        console.log(logMessage);
+        db.createLog({
+          directoryId: watchDirectory.id,
+          conditionId: matchedCondition!.id,
+          message: logMessage,
+        });
+        handling.delete(file);
+      }
+    });
+  }
+
+  function waitForUnchangingFileSize(file: string, callback: (success: boolean) => void) {
+    let lastSize = statSync(file).size;
+    function check() {
       try {
-        mkdirSync(destination, { recursive: true });
-        renameSync(file, path.join(destination, filename));
+        const stat = statSync(file);
+        if (stat.size !== 0 && stat.size === lastSize) {
+          callback(true);
+        } else {
+          lastSize = stat.size;
+        }
       } catch (err) {
-        logMessage = `Error moving ${originalFilename} to ${destination}: ${err instanceof Error ? err.message : err}`;
+        callback(false);
       }
-
-      console.log(logMessage);
-      db.createLog({
-        directoryId: watchDirectory.id,
-        conditionId: matchedCondition!.id,
-        message: logMessage,
-      });
     }
+
+    const interval = setInterval(check, 1000);
+    return interval;
   }
 
   function getConditionMatch(file: string, type: "file" | "directory") {
