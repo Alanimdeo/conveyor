@@ -1,5 +1,6 @@
 <p align="center">
-  <img src="./frontend/public/logo.svg" width="360" alt="Conveyor logo" />
+  <img src="./frontend/public/logo.svg#gh-light-mode-only" width="360" alt="Conveyor logo (Black)" />
+  <img src="./static/logo-white.svg#gh-dark-mode-only" width="360" alt="Conveyor logo (White)" />
 </p>
 <p align="center" style="font-size: 2rem;">Conveyor</p>
 <p align="center">파일 관리 자동화 도구</p>
