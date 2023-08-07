@@ -16,20 +16,20 @@ import { getVersion } from "../alteration";
 
 export class Database {
   version: string;
-  db: SqliteDatabaseType;
+  sql: SqliteDatabaseType;
 
   constructor(filename: string, create: boolean = false) {
     this.version = getLatestDatabaseVersion();
     if (existsSync(filename)) {
-      this.db = new SqliteDatabase(filename);
-      this.db.pragma("journal_mode = WAL");
+      this.sql = new SqliteDatabase(filename);
+      this.sql.pragma("journal_mode = WAL");
       return;
     }
 
     if (!create) {
       throw new Error("Database file does not exist.");
     }
-    this.db = new SqliteDatabase(filename);
+    this.sql = new SqliteDatabase(filename);
   }
 
   getWatchDirectoryCount() {
@@ -395,17 +395,17 @@ export class Database {
 
   get<T = unknown>(sql: string, params: any[] = []) {
     params = params.map(this.normalize).map(this.booleanToNumber);
-    const result = this.db.prepare(sql.normalize()).get(...params);
+    const result = this.sql.prepare(sql.normalize()).get(...params);
     return result as T;
   }
   run(sql: string, params: any[] = []) {
     params = params.map(this.normalize).map(this.booleanToNumber);
-    const result = this.db.prepare(sql.normalize()).run(...params);
+    const result = this.sql.prepare(sql.normalize()).run(...params);
     return result;
   }
   all<T = unknown[]>(sql: string, params: any[] = []) {
     params = params.map(this.normalize).map(this.booleanToNumber);
-    const result = this.db.prepare(sql.normalize()).all(...params);
+    const result = this.sql.prepare(sql.normalize()).all(...params);
     return result as T;
   }
 
