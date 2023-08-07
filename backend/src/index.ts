@@ -1,4 +1,5 @@
 import path from "path";
+import crypto from "crypto";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
@@ -35,7 +36,7 @@ async function main() {
   const cookieExpiration = Number(process.env.COOKIE_EXPIRATION) || 30 * 60 * 1000;
   server.use(
     session({
-      secret: process.env.SESSION_SECRET || Math.random().toString(36).substring(2),
+      secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString(),
       resave: false,
       saveUninitialized: false,
       store: new MemoryStore({ checkPeriod: cookieExpiration }),
