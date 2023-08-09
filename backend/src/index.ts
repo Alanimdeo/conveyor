@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import path from "path";
 import crypto from "crypto";
 import dotenv from "dotenv";
@@ -64,8 +65,11 @@ async function main() {
     apiRouter
   );
 
+  const indexHtml =
+    process.env.NODE_ENV === "production" ? readFileSync(path.join(__dirname, "public/index.html"), "utf8") : undefined;
+
   server.get("/*", (_, res) => {
-    res.sendFile(path.join(__dirname, "public/index.html"));
+    res.send(indexHtml);
   });
 
   server.use((_, __, next) => {
