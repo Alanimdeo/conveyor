@@ -8,7 +8,7 @@ const packageJson = {
   author: "Alanimdeo <alan@imdeo.kr>",
   license: "MIT",
   scripts: {
-    start: "supervisor index.js",
+    start: "NODE_ENV=production supervisor index.js",
     alteration: "node alteration/index.js",
   },
   dependencies: backendPackageJson.dependencies,

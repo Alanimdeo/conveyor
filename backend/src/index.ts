@@ -1,7 +1,10 @@
+import { readFileSync } from "fs";
 import path from "path";
+import crypto from "crypto";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
+import rateLimit from "express-rate-limit";
 import createError from "http-errors";
 import createMemoryStore from "memorystore";
 import logger from "morgan";
@@ -35,7 +38,7 @@ async function main() {
   const cookieExpiration = Number(process.env.COOKIE_EXPIRATION) || 30 * 60 * 1000;
   server.use(
     session({
-      secret: process.env.SESSION_SECRET || Math.random().toString(36).substring(2),
+      secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString(),
       resave: false,
       saveUninitialized: false,
       store: new MemoryStore({ checkPeriod: cookieExpiration }),
@@ -43,11 +46,17 @@ async function main() {
     })
   );
 
+  const rateLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 100,
+  });
+
   server.get("/favicon.ico", (_, res) => res.status(204).send());
 
   server.use(express.static(path.join(__dirname, "public")));
   server.use(
     "/api",
+    rateLimiter,
     (req, _, next) => {
       req.db = db;
       req.watchers = watchers;
@@ -56,8 +65,11 @@ async function main() {
     apiRouter
   );
 
+  const indexHtml =
+    process.env.NODE_ENV === "production" ? readFileSync(path.join(__dirname, "public/index.html"), "utf8") : undefined;
+
   server.get("/*", (_, res) => {
-    res.sendFile(path.join(__dirname, "public/index.html"));
+    res.send(indexHtml);
   });
 
   server.use((_, __, next) => {

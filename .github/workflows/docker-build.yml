@@ -1,8 +1,8 @@
 name: Docker Build and Publish
 on:
   push:
-    paths:
-      - package.json
+    branches:
+      - main
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
