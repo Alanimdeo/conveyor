@@ -42,7 +42,7 @@ async function main() {
       resave: false,
       saveUninitialized: false,
       store: new MemoryStore({ checkPeriod: cookieExpiration }),
-      cookie: { maxAge: cookieExpiration },
+      cookie: { maxAge: cookieExpiration, sameSite: "strict" },
     })
   );
 
