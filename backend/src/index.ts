@@ -3,6 +3,7 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
+import rateLimit from "express-rate-limit";
 import createError from "http-errors";
 import createMemoryStore from "memorystore";
 import logger from "morgan";
@@ -44,11 +45,17 @@ async function main() {
     })
   );
 
+  const rateLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 100,
+  });
+
   server.get("/favicon.ico", (_, res) => res.status(204).send());
 
   server.use(express.static(path.join(__dirname, "public")));
   server.use(
     "/api",
+    rateLimiter,
     (req, _, next) => {
       req.db = db;
       req.watchers = watchers;
