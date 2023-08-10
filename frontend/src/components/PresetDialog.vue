@@ -13,6 +13,9 @@
         {{ preset.name || "이름 없는 프리셋 " + preset.id }}
       </ElButton>
     </div>
+
+    <ElEmpty v-if="presets.length === 0" description="프리셋이 없습니다. 프리셋 탭에서 추가해 보세요!" />
+
     <div class="end">
       <ElButton @click="opened = false">취소</ElButton>
     </div>
