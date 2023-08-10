@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
 import rateLimit from "express-rate-limit";
+import { csrf } from "lusca";
 import createError from "http-errors";
 import createMemoryStore from "memorystore";
 import logger from "morgan";
@@ -43,6 +44,14 @@ async function main() {
       saveUninitialized: false,
       store: new MemoryStore({ checkPeriod: cookieExpiration }),
       cookie: { maxAge: cookieExpiration, sameSite: "strict" },
+    })
+  );
+
+  server.use(
+    csrf({
+      cookie: {
+        name: "_csrf",
+      },
     })
   );
 

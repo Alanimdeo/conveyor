@@ -15,6 +15,18 @@ fetchInterceptor.register({
       config.headers = {};
     }
     config.headers["Cookie"] = document.cookie;
+
+    if (config.method !== "GET" && config.headers["Content-Type"] === "application/json") {
+      const body = JSON.parse(config.body);
+
+      const cookie = decodeURIComponent(document.cookie);
+      const csrfToken = cookie.replace(/.*_csrf=(.{38})(;.*|$)/, "$1");
+
+      body["_csrf"] = csrfToken;
+      document.cookie = "_csrf=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+      config.body = JSON.stringify(body);
+    }
     return [url, config];
   },
   response(response) {
