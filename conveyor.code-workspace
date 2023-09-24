@@ -1,16 +1,16 @@
 {
   "folders": [
     {
+      "name": "conveyor",
+      "path": "."
+    },
+    {
       "name": "backend",
       "path": "backend"
     },
     {
       "name": "frontend",
       "path": "frontend"
-    },
-    {
-      "name": "conveyor",
-      "path": "."
     }
   ]
 }
