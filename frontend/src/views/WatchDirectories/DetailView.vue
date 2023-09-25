@@ -93,7 +93,8 @@
 
         <ElTabPane label="감시 조건" name="conditions">
           <div class="container">
-            <div class="end">
+            <div class="end top-bar">
+              <ElInput class="search" v-model="query" placeholder="검색"></ElInput>
               <ElButton type="primary" :icon="Plus" @click="openCreateDialog()"> 추가 </ElButton>
             </div>
 
@@ -102,87 +103,89 @@
               description="감시 조건이 없습니다. 추가 버튼을 눌러 추가해 보세요!"
             />
 
-            <ElCard v-else v-for="(condition, index) in watchConditions" :key="condition.id">
-              <template #header>
-                <div class="card-header">
+            <span v-else v-for="condition in watchConditions" :key="condition.id">
+              <ElCard v-if="!queryRegExp || queryRegExp.test(condition.name)">
+                <template #header>
+                  <div class="card-header">
+                    <div>
+                      <span class="card-title">{{ condition.name || "이름 없는 조건" }}</span>
+                      <ElTag v-if="condition.enabled" type="success">사용 중</ElTag>
+                      <ElTag v-else type="danger">비활성화</ElTag>
+                    </div>
+                    <div>
+                      <ElButton link type="primary" :icon="Edit" @click="editWatchCondition(condition.id)">
+                        편집
+                      </ElButton>
+                      <ElButton
+                        link
+                        type="danger"
+                        :icon="Delete"
+                        @click="
+                          removeConditionId = condition.id;
+                          removeConditionDialog = true;
+                        "
+                      >
+                        삭제
+                      </ElButton>
+                    </div>
+                  </div>
+                </template>
+
+                <span class="big">설정</span>
+                <div class="card-content mb">
                   <div>
-                    <span class="card-title">{{ condition.name || "이름 없는 조건" }}</span>
-                    <ElTag v-if="condition.enabled" type="success">사용 중</ElTag>
-                    <ElTag v-else type="danger">비활성화</ElTag>
+                    <span>우선 순위: </span>
+                    <span>{{ condition.priority }}</span>
                   </div>
                   <div>
-                    <ElButton link type="primary" :icon="Edit" @click="editWatchCondition(condition.id)">
-                      편집
-                    </ElButton>
-                    <ElButton
-                      link
-                      type="danger"
-                      :icon="Delete"
-                      @click="
-                        removeConditionId = condition.id;
-                        removeConditionDialog = true;
-                      "
-                    >
-                      삭제
-                    </ElButton>
+                    <span>감시 대상: </span>
+                    <span>{{ watchTypes[condition.type] }}</span>
                   </div>
-                </div>
-              </template>
-
-              <span class="big">설정</span>
-              <div class="card-content mb">
-                <div>
-                  <span>우선 순위: </span>
-                  <span>{{ condition.priority }}</span>
-                </div>
-                <div>
-                  <span>감시 대상: </span>
-                  <span>{{ watchTypes[condition.type] }}</span>
-                </div>
-                <div>
-                  <span>정규식 사용: </span>
-                  <VXIcon v-model="condition.useRegExp" />
-                </div>
-                <div>
-                  <span>패턴: </span>
-                  <span>{{ condition.pattern }}</span>
-                </div>
-                <div>
-                  <span>이동 경로: </span>
-                  <span>{{ condition.destination === "$" ? "이동 안 함" : condition.destination }}</span>
-                </div>
-                <div>
-                  <span>이동 지연: </span>
-                  <span>{{ condition.delay }} ms</span>
-                </div>
-              </div>
-
-              <span class="big">이름 변경 규칙</span>
-              <div class="card-content">
-                <div>
-                  <span>사용: </span>
-                  <VXIcon v-model="condition.renamePattern" />
-                </div>
-                <div v-if="condition.renamePattern" class="card-content-inner">
                   <div>
                     <span>정규식 사용: </span>
-                    <VXIcon v-model="condition.renamePattern.useRegExp" />
-                  </div>
-                  <div>
-                    <span>확장자 제외: </span>
-                    <VXIcon v-model="condition.renamePattern.excludeExtension" />
+                    <VXIcon v-model="condition.useRegExp" />
                   </div>
                   <div>
                     <span>패턴: </span>
-                    <span>{{ condition.renamePattern.pattern }}</span>
+                    <span>{{ condition.pattern }}</span>
                   </div>
                   <div>
-                    <span>바꿀 이름: </span>
-                    <span>{{ condition.renamePattern.replaceValue }}</span>
+                    <span>이동 경로: </span>
+                    <span>{{ condition.destination === "$" ? "이동 안 함" : condition.destination }}</span>
+                  </div>
+                  <div>
+                    <span>이동 지연: </span>
+                    <span>{{ condition.delay }} ms</span>
                   </div>
                 </div>
-              </div>
-            </ElCard>
+
+                <span class="big">이름 변경 규칙</span>
+                <div class="card-content">
+                  <div>
+                    <span>사용: </span>
+                    <VXIcon v-model="condition.renamePattern" />
+                  </div>
+                  <div v-if="condition.renamePattern" class="card-content-inner">
+                    <div>
+                      <span>정규식 사용: </span>
+                      <VXIcon v-model="condition.renamePattern.useRegExp" />
+                    </div>
+                    <div>
+                      <span>확장자 제외: </span>
+                      <VXIcon v-model="condition.renamePattern.excludeExtension" />
+                    </div>
+                    <div>
+                      <span>패턴: </span>
+                      <span>{{ condition.renamePattern.pattern }}</span>
+                    </div>
+                    <div>
+                      <span>바꿀 이름: </span>
+                      <span>{{ condition.renamePattern.replaceValue }}</span>
+                    </div>
+                  </div>
+                </div>
+              </ElCard>
+            </span>
           </div>
         </ElTabPane>
       </ElTabs>
@@ -239,11 +242,12 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, computed } from "vue";
+import { h, ref, computed, watch } from "vue";
 import type { Ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { isEqual } from "lodash";
 import { ElMessage } from "element-plus";
+import { getRegExp } from "korean-regexp";
 import { Check, Delete, Edit, Plus, Files } from "@element-plus/icons-vue";
 import type {
   WatchDirectory,
@@ -514,6 +518,16 @@ function onPresetSelect(preset: WatchDirectoryPreset | WatchConditionPreset) {
   presetDialog.value = false;
 }
 
+const query = ref("");
+const queryRegExp = ref<RegExp | null>(null);
+watch(query, (value) => {
+  if (value === "") {
+    queryRegExp.value = null;
+    return;
+  }
+  queryRegExp.value = getRegExp(value, { fuzzy: true, ignoreCase: true, initialSearch: true });
+});
+
 await refreshWatchConditions();
 </script>
 
@@ -561,5 +575,14 @@ await refreshWatchConditions();
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+.search {
+  width: 12rem;
 }
 </style>

@@ -1,39 +1,42 @@
 <template>
   <div class="container">
-    <div class="end">
+    <div class="end top-bar">
+      <ElInput class="search" v-model="query" placeholder="검색"></ElInput>
       <ElButton type="primary" :icon="Plus" @click="openCreateDialog()">추가</ElButton>
     </div>
 
     <ElEmpty v-if="watchDirectories.length === 0" description="폴더가 없습니다. 추가 버튼을 눌러 추가해 보세요!" />
 
-    <ElCard v-else v-for="directory in watchDirectories" :key="directory.id">
-      <template #header>
-        <div class="card-header">
-          <div>
-            <span class="folder-name">
-              <span v-if="directory.name">
-                {{ directory.name }}
+    <span v-else v-for="directory in watchDirectories" :key="directory.id">
+      <ElCard v-if="!queryRegExp || queryRegExp.test(directory.name)">
+        <template #header>
+          <div class="card-header">
+            <div>
+              <span class="folder-name">
+                <span v-if="directory.name">
+                  {{ directory.name }}
+                </span>
+                <span v-else>
+                  <span>이름 없는 폴더</span>
+                  <span class="folder-id"> #{{ directory.id }} </span>
+                </span>
               </span>
-              <span v-else>
-                <span>이름 없는 폴더</span>
-                <span class="folder-id"> #{{ directory.id }} </span>
-              </span>
-            </span>
-            <ElTag v-if="directory.enabled" type="success">사용 중</ElTag>
-            <ElTag v-else type="danger">비활성화</ElTag>
+              <ElTag v-if="directory.enabled" type="success">사용 중</ElTag>
+              <ElTag v-else type="danger">비활성화</ElTag>
+            </div>
+            <div>
+              <ElButton link type="primary" :icon="Edit" @click="router.push(`/directory/${directory.id}`)">
+                편집
+              </ElButton>
+              <ElButton link type="danger" :icon="Delete" @click="openRemoveDialog(directory.id)">삭제</ElButton>
+            </div>
           </div>
-          <div>
-            <ElButton link type="primary" :icon="Edit" @click="router.push(`/directory/${directory.id}`)">
-              편집
-            </ElButton>
-            <ElButton link type="danger" :icon="Delete" @click="openRemoveDialog(directory.id)">삭제</ElButton>
-          </div>
-        </div>
-      </template>
+        </template>
 
-      <span>폴더 경로: </span>
-      <span>{{ directory.path }}</span>
-    </ElCard>
+        <span>폴더 경로: </span>
+        <span>{{ directory.path }}</span>
+      </ElCard>
+    </span>
   </div>
 
   <RemoveDialog v-model="removeDialog" title="폴더 삭제" :name="selectedDirectoryName" @confirm="removeDirectory()">
@@ -59,12 +62,13 @@
 </template>
 
 <script setup lang="ts">
-import { Delete, Edit, Plus, Files } from "@element-plus/icons-vue";
 import type { WatchDirectory, WatchDirectoryPreset } from "@conveyor/types";
-import { useRouter } from "vue-router";
-import { computed, h, ref } from "vue";
 import type { Ref } from "vue";
+import { Delete, Edit, Plus, Files } from "@element-plus/icons-vue";
+import { computed, h, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
+import { getRegExp } from "korean-regexp";
 import WatchDirectoryDialog from "@/components/WatchDirectoryDialog.vue";
 import RemoveDialog from "@/components/RemoveDialog.vue";
 import PresetDialog from "@/components/PresetDialog.vue";
@@ -188,10 +192,29 @@ function selectPreset(preset: WatchDirectoryPreset) {
   createDirectoryOptions.value = Object.assign({}, preset);
 }
 
+const query = ref("");
+const queryRegExp = ref<RegExp | null>(null);
+watch(query, (value) => {
+  if (value === "") {
+    queryRegExp.value = null;
+    return;
+  }
+  queryRegExp.value = getRegExp(value, { fuzzy: true, ignoreCase: true, initialSearch: true });
+});
+
 await refreshWatchDirectories();
 </script>
 
 <style scoped>
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+.search {
+  width: 12rem;
+}
 .folder-name {
   margin-right: 0.5rem;
 }
