@@ -3,7 +3,8 @@
     <ElTabs v-model="activeTab">
       <ElTabPane label="감시 폴더" name="watch-directories">
         <div class="container">
-          <div class="end">
+          <div class="end top-bar">
+            <ElInput class="search" v-model="query" placeholder="검색"></ElInput>
             <ElButton type="primary" :icon="Plus" @click="openCreateWatchDirectoryDialog">추가</ElButton>
           </div>
 
@@ -12,42 +13,45 @@
             description="감시 폴더 프리셋이 없습니다. 추가 버튼을 눌러 추가해 보세요!"
           />
 
-          <ElCard v-else v-for="preset in watchDirectoryPresets" :key="preset.id">
-            <div class="card-header">
-              <div>
-                <span class="folder-name">
-                  <span v-if="preset.name">
-                    {{ preset.name }}
+          <span v-else v-for="preset in watchDirectoryPresets" :key="preset.id">
+            <ElCard v-if="!queryRegExp || queryRegExp.test(preset.name)">
+              <div class="card-header">
+                <div>
+                  <span class="folder-name">
+                    <span v-if="preset.name">
+                      {{ preset.name }}
+                    </span>
+                    <span v-else>
+                      <span>이름 없는 폴더</span>
+                      <span class="folder-id">#{{ preset.id }}</span>
+                    </span>
                   </span>
-                  <span v-else>
-                    <span>이름 없는 폴더</span>
-                    <span class="folder-id">#{{ preset.id }}</span>
-                  </span>
-                </span>
+                </div>
+                <div>
+                  <ElButton link type="primary" :icon="Edit" @click="editWatchDirectoryPresetDialog(preset.id)">
+                    편집
+                  </ElButton>
+                  <ElButton
+                    link
+                    type="danger"
+                    :icon="Delete"
+                    @click="
+                      removeTypeId = { type: 'watch-directory', id: preset.id };
+                      removeDialog = true;
+                    "
+                  >
+                    삭제
+                  </ElButton>
+                </div>
               </div>
-              <div>
-                <ElButton link type="primary" :icon="Edit" @click="editWatchDirectoryPresetDialog(preset.id)">
-                  편집
-                </ElButton>
-                <ElButton
-                  link
-                  type="danger"
-                  :icon="Delete"
-                  @click="
-                    removeTypeId = { type: 'watch-directory', id: preset.id };
-                    removeDialog = true;
-                  "
-                >
-                  삭제
-                </ElButton>
-              </div>
-            </div>
-          </ElCard>
+            </ElCard>
+          </span>
         </div>
       </ElTabPane>
       <ElTabPane label="감시 조건" name="watch-conditions">
         <div class="container">
-          <div class="end">
+          <div class="end top-bar">
+            <ElInput class="search" v-model="query" placeholder="검색"></ElInput>
             <ElButton type="primary" :icon="Plus" @click="openCreateWatchConditionDialog()">추가</ElButton>
           </div>
 
@@ -56,37 +60,39 @@
             description="감시 조건 프리셋이 없습니다. 추가 버튼을 눌러 추가해 보세요!"
           />
 
-          <ElCard v-else v-for="preset in watchConditionPresets" :key="preset.id">
-            <div class="card-header">
-              <div>
-                <span class="folder-name">
-                  <span v-if="preset.name">
-                    {{ preset.name }}
+          <span v-else v-for="preset in watchConditionPresets" :key="preset.id">
+            <ElCard v-if="!queryRegExp || queryRegExp.test(preset.name)">
+              <div class="card-header">
+                <div>
+                  <span class="folder-name">
+                    <span v-if="preset.name">
+                      {{ preset.name }}
+                    </span>
+                    <span v-else>
+                      <span>이름 없는 조건</span>
+                      <span class="folder-id">#{{ preset.id }}</span>
+                    </span>
                   </span>
-                  <span v-else>
-                    <span>이름 없는 조건</span>
-                    <span class="folder-id">#{{ preset.id }}</span>
-                  </span>
-                </span>
+                </div>
+                <div>
+                  <ElButton link type="primary" :icon="Edit" @click="editWatchConditionPresetDialog(preset.id)">
+                    편집
+                  </ElButton>
+                  <ElButton
+                    link
+                    type="danger"
+                    :icon="Delete"
+                    @click="
+                      removeTypeId = { type: 'watch-condition', id: preset.id };
+                      removeDialog = true;
+                    "
+                  >
+                    삭제
+                  </ElButton>
+                </div>
               </div>
-              <div>
-                <ElButton link type="primary" :icon="Edit" @click="editWatchConditionPresetDialog(preset.id)">
-                  편집
-                </ElButton>
-                <ElButton
-                  link
-                  type="danger"
-                  :icon="Delete"
-                  @click="
-                    removeTypeId = { type: 'watch-condition', id: preset.id };
-                    removeDialog = true;
-                  "
-                >
-                  삭제
-                </ElButton>
-              </div>
-            </div>
-          </ElCard>
+            </ElCard>
+          </span>
         </div>
       </ElTabPane>
     </ElTabs>
@@ -119,6 +125,7 @@
 import { ref, watch } from "vue";
 import { Delete, Edit, Plus } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
+import { getRegExp } from "korean-regexp";
 import type { RenamePattern, WatchConditionPreset, WatchDirectoryPreset } from "@conveyor/types";
 import WatchDirectoryDialog from "@/components/WatchDirectoryDialog.vue";
 import WatchConditionDialog from "@/components/WatchConditionDialog.vue";
@@ -352,6 +359,23 @@ async function remove() {
   }
 }
 
+const query = ref("");
+const queryRegExp = ref<RegExp | null>(null);
+watch(query, (value) => {
+  if (value === "") {
+    queryRegExp.value = null;
+    return;
+  }
+  queryRegExp.value = getRegExp(value, { fuzzy: true, ignoreCase: true, initialSearch: true });
+});
+
+watch(activeTab, (value, oldValue) => {
+  if (value === oldValue) {
+    return;
+  }
+  query.value = "";
+});
+
 await fetchWatchDirectoryPresets();
 await fetchWatchConditionPresets();
 </script>
@@ -372,5 +396,14 @@ await fetchWatchConditionPresets();
   font-size: 1rem;
   font-weight: 300;
   color: #777;
+}
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+.search {
+  width: 12rem;
 }
 </style>

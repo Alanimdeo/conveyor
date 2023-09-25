@@ -2822,6 +2822,11 @@ kleur@^4.0.1:
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-4.1.5.tgz#95106101795f7050c6c650f350c683febddb1780"
   integrity sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==
 
+korean-regexp@^1.0.11:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/korean-regexp/-/korean-regexp-1.0.11.tgz#e027e41cb13436042f50ca2efb69715dc7aafae8"
+  integrity sha512-IRpTbuoUhSjLkOHrlAj4QZMF8fDEWt/7r2lTXNPwLHbLDIDgqCPOkCfdGjmcEYA7p5XdqRQT9loy/VwpaLrtZQ==
+
 latest-version@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/latest-version/-/latest-version-7.0.0.tgz#843201591ea81a4d404932eeb61240fe04e9e5da"

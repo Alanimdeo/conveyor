@@ -1,18 +1,23 @@
 <template>
   <ElDialog v-model="opened" title="프리셋 선택" style="max-width: 560px; width: 100%">
-    <div v-for="preset in presets" :key="preset.id" class="preset">
-      <ElButton
-        class="left-align"
-        plain
-        size="large"
-        @click="
-          selectedPresetId = preset.id;
-          confirmDialog = true;
-        "
-      >
-        {{ preset.name || "이름 없는 프리셋 " + preset.id }}
-      </ElButton>
+    <div class="end mb top-bar">
+      <ElInput class="search" v-model="query" placeholder="검색"></ElInput>
     </div>
+    <span v-for="preset in presets" :key="preset.id">
+      <div v-if="!queryRegExp || queryRegExp.test(preset.name)" class="preset">
+        <ElButton
+          class="left-align"
+          plain
+          size="large"
+          @click="
+            selectedPresetId = preset.id;
+            confirmDialog = true;
+          "
+        >
+          {{ preset.name || "이름 없는 프리셋 " + preset.id }}
+        </ElButton>
+      </div>
+    </span>
 
     <ElEmpty v-if="presets.length === 0" description="프리셋이 없습니다. 프리셋 탭에서 추가해 보세요!" />
 
@@ -33,8 +38,9 @@
 
 <script setup lang="ts">
 import type { WatchConditionPreset, WatchDirectoryPreset } from "@conveyor/types";
-import { ElMessage } from "element-plus";
 import { computed, ref, watch } from "vue";
+import { ElMessage } from "element-plus";
+import { getRegExp } from "korean-regexp";
 
 const props = defineProps({
   modelValue: {
@@ -55,6 +61,16 @@ const opened = computed({
 
 const presets = ref<WatchDirectoryPreset[] | WatchConditionPreset[]>([]);
 const selectedPresetId = ref(-1);
+
+const query = ref("");
+const queryRegExp = ref<RegExp | null>(null);
+watch(query, (value) => {
+  if (value === "") {
+    queryRegExp.value = null;
+    return;
+  }
+  queryRegExp.value = getRegExp(value, { fuzzy: true, ignoreCase: true, initialSearch: true });
+});
 
 watch(opened, async (value) => {
   if (!value) return;
@@ -90,6 +106,15 @@ async function select(id: number) {
 </script>
 
 <style scoped>
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+.search {
+  width: 12rem;
+}
 .preset {
   display: block;
   margin-bottom: 1rem;
