@@ -30,7 +30,10 @@
         {{ latestVersion }}
       </a>
     </span>
-    <span v-else>최신 버전입니다.</span>
+    <span v-else>
+      최신 버전입니다.
+      <a href="https://github.com/Alanimdeo/conveyor/releases/latest" target="_blank" class="gray">변경 사항 보기</a>
+    </span>
   </div>
 </template>
 
