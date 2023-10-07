@@ -17,7 +17,7 @@ fetchInterceptor.register({
     const cookie = decodeURIComponent(document.cookie);
     const csrfToken = cookie.replace(/.*_csrf=(.{38})(;.*|$)/, "$1");
     config.headers["Cookie"] = cookie;
-    if (url.includes("github.com")) {
+    if (url === "https://api.github.com/repos/Alanimdeo/conveyor/tags") {
       return [url, config];
     }
     config.headers["X-CSRF-Token"] = csrfToken;
