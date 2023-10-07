@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import path from "path";
 import crypto from "crypto";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
@@ -35,6 +36,7 @@ async function main() {
   server.use(logger("combined"));
   server.use(express.json());
   server.use(express.urlencoded({ extended: false }));
+  server.use(cookieParser());
 
   const cookieExpiration = Number(process.env.COOKIE_EXPIRATION) || 30 * 60 * 1000;
   server.use(
