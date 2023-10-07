@@ -14,19 +14,14 @@ fetchInterceptor.register({
     if (!config.headers) {
       config.headers = {};
     }
-    config.headers["Cookie"] = document.cookie;
-
-    if (config.method !== "GET" && config.headers["Content-Type"] === "application/json") {
-      const body = JSON.parse(config.body);
-
-      const cookie = decodeURIComponent(document.cookie);
-      const csrfToken = cookie.replace(/.*_csrf=(.{38})(;.*|$)/, "$1");
-
-      body["_csrf"] = csrfToken;
-      document.cookie = "_csrf=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-      config.body = JSON.stringify(body);
+    const cookie = decodeURIComponent(document.cookie);
+    const csrfToken = cookie.replace(/.*_csrf=(.{38})(;.*|$)/, "$1");
+    config.headers["Cookie"] = cookie;
+    if (url.includes("github.com")) {
+      return [url, config];
     }
+    config.headers["X-CSRF-Token"] = csrfToken;
+
     return [url, config];
   },
   response(response) {
