@@ -13,11 +13,15 @@ export function getVersion(file: string) {
   return file;
 }
 
-export async function alterDatabase(databasePath: string = CONVEYOR_DEFAULT_DATABASE_PATH) {
+export async function alterDatabase(
+  databasePath: string = CONVEYOR_DEFAULT_DATABASE_PATH
+) {
   console.log("Database path:", databasePath);
   const db = new Database(databasePath);
 
-  const currentVersion = db.get<{ value: string }>("SELECT value FROM info WHERE key = 'version'").value;
+  const currentVersion = db.get<{ value: string }>(
+    "SELECT value FROM info WHERE key = 'version'"
+  ).value;
   console.log(`Current database version: ${currentVersion}`);
 
   const scripts = readdirSync(__dirname + "/scripts")
@@ -46,8 +50,13 @@ export async function alterDatabase(databasePath: string = CONVEYOR_DEFAULT_DATA
       upgrade(db);
       db.run("UPDATE info SET value = ? WHERE key = 'version'", [script]);
     } catch (err) {
-      console.error(`Error upgrading to v${script}: ${err instanceof Error ? err.message : err}`);
-      console.error("Backup database file is available at:", path.resolve(backupPath));
+      console.error(
+        `Error upgrading to v${script}: ${err instanceof Error ? err.message : err}`
+      );
+      console.error(
+        "Backup database file is available at:",
+        path.resolve(backupPath)
+      );
       break;
     }
   }

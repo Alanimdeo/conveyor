@@ -1,16 +1,31 @@
 <template>
   <div class="form">
-    <img src="/logo.svg" alt="logo" :class="['logo', headerStore.isDark ? 'white' : null]" />
+    <img
+      src="/logo.svg"
+      alt="logo"
+      :class="['logo', headerStore.isDark ? 'white' : null]"
+    />
     <ElCard class="inner">
       <ElForm :model="userInfo" label-width="80px">
         <ElFormItem label="ID">
-          <ElInput autocomplete="username" v-model="userInfo.username" @keydown="onKeyPress" />
+          <ElInput
+            autocomplete="username"
+            v-model="userInfo.username"
+            @keydown="onKeyPress"
+          />
         </ElFormItem>
         <ElFormItem label="비밀번호">
-          <ElInput type="password" autocomplete="current-password" v-model="userInfo.password" @keydown="onKeyPress" />
+          <ElInput
+            type="password"
+            autocomplete="current-password"
+            v-model="userInfo.password"
+            @keydown="onKeyPress"
+          />
         </ElFormItem>
         <ElFormItem>
-          <ElButton type="primary" :loading="isLoggingIn" @click="login">로그인</ElButton>
+          <ElButton type="primary" :loading="isLoggingIn" @click="login"
+            >로그인</ElButton
+          >
         </ElFormItem>
       </ElForm>
     </ElCard>

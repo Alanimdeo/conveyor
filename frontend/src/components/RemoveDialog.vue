@@ -6,7 +6,9 @@
 
     <template #footer>
       <ElButton @click="opened = false">취소</ElButton>
-      <ElButton type="danger" @click="emit('confirm')" :loading="loading">삭제</ElButton>
+      <ElButton type="danger" @click="emit('confirm')" :loading="loading"
+        >삭제</ElButton
+      >
     </template>
   </ElDialog>
 </template>

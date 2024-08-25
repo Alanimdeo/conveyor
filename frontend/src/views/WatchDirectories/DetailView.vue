@@ -36,7 +36,12 @@
         >
           저장
         </ElButton>
-        <ElButton type="danger" :icon="Delete" @click="removeDirectoryDialog = true">삭제</ElButton>
+        <ElButton
+          type="danger"
+          :icon="Delete"
+          @click="removeDirectoryDialog = true"
+          >삭제</ElButton
+        >
       </div>
       <div v-else class="title">
         <ElButton
@@ -45,7 +50,11 @@
           @click="saveWatchDirectory()"
           :disabled="isEqual(watchDirectoryInitial, watchDirectory)"
         />
-        <ElButton type="danger" :icon="Delete" @click="removeDirectoryDialog = true" />
+        <ElButton
+          type="danger"
+          :icon="Delete"
+          @click="removeDirectoryDialog = true"
+        />
       </div>
     </template>
     <div class="tabs">
@@ -73,19 +82,42 @@
             </div>
             <p>폴링</p>
             <div class="alert">
-              <ElAlert type="info" show-icon :closable="false" style="margin-bottom: 10px">
-                <span>Conveyor가 변경 내용을 감지하지 못할 경우 폴링을 사용하도록 설정해 보세요.</span>
+              <ElAlert
+                type="info"
+                show-icon
+                :closable="false"
+                style="margin-bottom: 10px"
+              >
+                <span
+                  >Conveyor가 변경 내용을 감지하지 못할 경우 폴링을 사용하도록
+                  설정해 보세요.</span
+                >
               </ElAlert>
-              <ElAlert type="warning" show-icon :closable="false" style="margin-bottom: 10px">
-                <span>폴링 간격이 너무 짧으면 CPU 사용량이 높아질 수 있습니다.</span>
+              <ElAlert
+                type="warning"
+                show-icon
+                :closable="false"
+                style="margin-bottom: 10px"
+              >
+                <span
+                  >폴링 간격이 너무 짧으면 CPU 사용량이 높아질 수
+                  있습니다.</span
+                >
               </ElAlert>
             </div>
             <div class="horizontal">
               <ElFormItem label="폴링 사용">
                 <ElSwitch v-model="watchDirectory.usePolling" />
               </ElFormItem>
-              <ElFormItem v-if="watchDirectory.usePolling" label="폴링 간격 (ms)">
-                <ElInputNumber v-model="watchDirectory.interval" :min="100" :step="100" />
+              <ElFormItem
+                v-if="watchDirectory.usePolling"
+                label="폴링 간격 (ms)"
+              >
+                <ElInputNumber
+                  v-model="watchDirectory.interval"
+                  :min="100"
+                  :step="100"
+                />
               </ElFormItem>
             </div>
           </ElForm>
@@ -94,8 +126,14 @@
         <ElTabPane label="감시 조건" name="conditions">
           <div class="container">
             <div class="end top-bar">
-              <ElInput class="search" v-model="query" placeholder="검색"></ElInput>
-              <ElButton type="primary" :icon="Plus" @click="openCreateDialog()"> 추가 </ElButton>
+              <ElInput
+                class="search"
+                v-model="query"
+                placeholder="검색"
+              ></ElInput>
+              <ElButton type="primary" :icon="Plus" @click="openCreateDialog()">
+                추가
+              </ElButton>
             </div>
 
             <ElEmpty
@@ -103,17 +141,30 @@
               description="감시 조건이 없습니다. 추가 버튼을 눌러 추가해 보세요!"
             />
 
-            <span v-else v-for="condition in watchConditions" :key="condition.id">
+            <span
+              v-else
+              v-for="condition in watchConditions"
+              :key="condition.id"
+            >
               <ElCard v-if="!queryRegExp || queryRegExp.test(condition.name)">
                 <template #header>
                   <div class="card-header">
                     <div>
-                      <span class="card-title">{{ condition.name || "이름 없는 조건" }}</span>
-                      <ElTag v-if="condition.enabled" type="success">사용 중</ElTag>
+                      <span class="card-title">{{
+                        condition.name || "이름 없는 조건"
+                      }}</span>
+                      <ElTag v-if="condition.enabled" type="success"
+                        >사용 중</ElTag
+                      >
                       <ElTag v-else type="danger">비활성화</ElTag>
                     </div>
                     <div>
-                      <ElButton link type="primary" :icon="Edit" @click="editWatchCondition(condition.id)">
+                      <ElButton
+                        link
+                        type="primary"
+                        :icon="Edit"
+                        @click="editWatchCondition(condition.id)"
+                      >
                         편집
                       </ElButton>
                       <ElButton
@@ -151,7 +202,11 @@
                   </div>
                   <div>
                     <span>이동 경로: </span>
-                    <span>{{ condition.destination === "$" ? "이동 안 함" : condition.destination }}</span>
+                    <span>{{
+                      condition.destination === "$"
+                        ? "이동 안 함"
+                        : condition.destination
+                    }}</span>
                   </div>
                   <div>
                     <span>이동 지연: </span>
@@ -165,14 +220,19 @@
                     <span>사용: </span>
                     <VXIcon v-model="condition.renamePattern" />
                   </div>
-                  <div v-if="condition.renamePattern" class="card-content-inner">
+                  <div
+                    v-if="condition.renamePattern"
+                    class="card-content-inner"
+                  >
                     <div>
                       <span>정규식 사용: </span>
                       <VXIcon v-model="condition.renamePattern.useRegExp" />
                     </div>
                     <div>
                       <span>확장자 제외: </span>
-                      <VXIcon v-model="condition.renamePattern.excludeExtension" />
+                      <VXIcon
+                        v-model="condition.renamePattern.excludeExtension"
+                      />
                     </div>
                     <div>
                       <span>패턴: </span>
@@ -200,14 +260,20 @@
     @confirm="removeDirectory()"
   >
     <template #message>
-      <span> 폴더를 삭제하시겠습니까? 이 작업은 해당 폴더 및 모든 하위 조건들을 삭제하며 되돌릴 수 없습니다!</span>
+      <span>
+        폴더를 삭제하시겠습니까? 이 작업은 해당 폴더 및 모든 하위 조건들을
+        삭제하며 되돌릴 수 없습니다!</span
+      >
     </template>
   </RemoveDialog>
 
   <RemoveDialog
     v-model="removeConditionDialog"
     title="조건 삭제"
-    :name="watchConditions.find((condition) => condition.id === removeConditionId)?.name || '이름 없는 조건'"
+    :name="
+      watchConditions.find((condition) => condition.id === removeConditionId)
+        ?.name || '이름 없는 조건'
+    "
     :loading="removingContition"
     @confirm="removeCondition(removeConditionId)"
   />
@@ -238,7 +304,11 @@
     </template>
   </WatchConditionDialog>
 
-  <PresetDialog v-model="presetDialog" :type="presetDialogMode" @select="onPresetSelect" />
+  <PresetDialog
+    v-model="presetDialog"
+    :type="presetDialogMode"
+    @select="onPresetSelect"
+  />
 </template>
 
 <script setup lang="ts">
@@ -275,7 +345,9 @@ type Tab = "settings" | "conditions";
 const activeTab: Ref<Tab> = ref("settings");
 
 const directoryId = Number(route.params.id);
-const watchDirectoryResponse = await fetch("/api/watch-directory/" + directoryId).then(async (res) => {
+const watchDirectoryResponse = await fetch(
+  "/api/watch-directory/" + directoryId
+).then(async (res) => {
   try {
     return await res.json();
   } catch (e) {
@@ -286,7 +358,9 @@ if (watchDirectoryResponse.error) {
   router.replace("/directory");
 }
 
-const watchDirectoryInitial: Ref<WatchDirectory> = ref(Object.assign({}, watchDirectoryResponse));
+const watchDirectoryInitial: Ref<WatchDirectory> = ref(
+  Object.assign({}, watchDirectoryResponse)
+);
 const watchDirectory: Ref<WatchDirectory> = ref(watchDirectoryResponse);
 
 const savingWatchDirectory = ref(false);
@@ -316,14 +390,20 @@ async function saveWatchDirectory() {
   savingWatchDirectory.value = false;
 }
 
-const selectedDirectoryName = computed(() => watchDirectory.value.name || `이름 없는 폴더 #${watchDirectory.value.id}`);
+const selectedDirectoryName = computed(
+  () =>
+    watchDirectory.value.name || `이름 없는 폴더 #${watchDirectory.value.id}`
+);
 
 const removingDirectory = ref(false);
 async function removeDirectory() {
   removingDirectory.value = true;
-  const response = await fetch("/api/watch-directory/" + watchDirectory.value.id, {
-    method: "DELETE",
-  }).then(async (res) => {
+  const response = await fetch(
+    "/api/watch-directory/" + watchDirectory.value.id,
+    {
+      method: "DELETE",
+    }
+  ).then(async (res) => {
     try {
       return await res.json();
     } catch (e) {
@@ -346,7 +426,9 @@ async function removeDirectory() {
 
 const watchConditions: Ref<WatchCondition[]> = ref([]);
 async function refreshWatchConditions() {
-  const response = await fetch(`/api/watch-directory/${directoryId}/conditions`).then(async (res) => {
+  const response = await fetch(
+    `/api/watch-directory/${directoryId}/conditions`
+  ).then(async (res) => {
     try {
       return await res.json();
     } catch (e) {
@@ -380,13 +462,20 @@ async function removeCondition(id: number) {
   if (request.success) {
     ElMessage.success("감시 조건을 삭제했습니다.");
   } else {
-    ElMessage.error(h("div", null, [h("p", null, "감시 조건을 삭제하지 못했습니다."), h("p", null, request.error)]));
+    ElMessage.error(
+      h("div", null, [
+        h("p", null, "감시 조건을 삭제하지 못했습니다."),
+        h("p", null, request.error),
+      ])
+    );
   }
   await refreshWatchConditions();
 }
 
 const conditionDialogMode = ref<"create" | "edit">("create");
-const createConditionOptions: Ref<{ id?: number } & Omit<WatchCondition, "id">> = ref({
+const createConditionOptions: Ref<
+  { id?: number } & Omit<WatchCondition, "id">
+> = ref({
   name: "",
   directoryId: directoryId,
   enabled: true,
@@ -435,7 +524,10 @@ function editWatchCondition(id: number) {
     watchConditions.value.find((condition) => condition.id === id)
   );
   if (createConditionOptions.value.renamePattern) {
-    createConditionRenamePattern.value = Object.assign({}, createConditionOptions.value.renamePattern);
+    createConditionRenamePattern.value = Object.assign(
+      {},
+      createConditionOptions.value.renamePattern
+    );
     createConditionOptionsHasRenamePattern.value = true;
   }
   createConditionDialog.value = true;
@@ -466,7 +558,9 @@ async function createCondition() {
       },
       body: JSON.stringify({
         ...createConditionOptions.value,
-        renamePattern: createConditionOptionsHasRenamePattern.value ? createConditionRenamePattern.value : undefined,
+        renamePattern: createConditionOptionsHasRenamePattern.value
+          ? createConditionRenamePattern.value
+          : undefined,
       }),
     }
   ).then(async (res) => {
@@ -477,12 +571,18 @@ async function createCondition() {
     }
   });
   if (response.success) {
-    ElMessage.success(`감시 조건을 ${dialogTexts[conditionDialogMode.value].submit}했습니다.`);
+    ElMessage.success(
+      `감시 조건을 ${dialogTexts[conditionDialogMode.value].submit}했습니다.`
+    );
     await refreshWatchConditions();
   } else {
     ElMessage.error(
       h("div", null, [
-        h("p", null, `감시 조건을 ${dialogTexts[conditionDialogMode.value].submit}하지 못했습니다.`),
+        h(
+          "p",
+          null,
+          `감시 조건을 ${dialogTexts[conditionDialogMode.value].submit}하지 못했습니다.`
+        ),
         h("p", null, response.error),
       ])
     );
@@ -493,7 +593,9 @@ async function createCondition() {
 }
 
 const presetDialog = ref(false);
-const presetDialogMode = ref<"watch-directory" | "watch-condition">("watch-directory");
+const presetDialogMode = ref<"watch-directory" | "watch-condition">(
+  "watch-directory"
+);
 
 function onPresetSelect(preset: WatchDirectoryPreset | WatchConditionPreset) {
   if (presetDialogMode.value === "watch-directory") {
@@ -502,7 +604,10 @@ function onPresetSelect(preset: WatchDirectoryPreset | WatchConditionPreset) {
     watchDirectory.value.name = name;
   } else {
     const { name } = createConditionOptions.value;
-    createConditionOptions.value = Object.assign(createConditionOptions.value, preset as WatchConditionPreset);
+    createConditionOptions.value = Object.assign(
+      createConditionOptions.value,
+      preset as WatchConditionPreset
+    );
     createConditionOptions.value.name = name;
     if (createConditionOptions.value.renamePattern) {
       createConditionRenamePattern.value = Object.assign(
@@ -525,7 +630,11 @@ watch(query, (value) => {
     queryRegExp.value = null;
     return;
   }
-  queryRegExp.value = getRegExp(value, { fuzzy: true, ignoreCase: true, initialSearch: true });
+  queryRegExp.value = getRegExp(value, {
+    fuzzy: true,
+    ignoreCase: true,
+    initialSearch: true,
+  });
 });
 
 await refreshWatchConditions();

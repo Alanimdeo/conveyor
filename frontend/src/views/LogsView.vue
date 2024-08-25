@@ -1,7 +1,11 @@
 <template>
   <div class="top-bar">
     <div>
-      <ElSelect v-model="logSearchOption.directoryId" multiple placeholder="폴더를 선택하세요.">
+      <ElSelect
+        v-model="logSearchOption.directoryId"
+        multiple
+        placeholder="폴더를 선택하세요."
+      >
         <ElOption
           v-for="directory in watchDirectories"
           :key="directory.id"
@@ -11,7 +15,11 @@
       </ElSelect>
     </div>
     <div>
-      <ElSelect v-model="logSearchOption.conditionId" multiple placeholder="조건을 선택하세요.">
+      <ElSelect
+        v-model="logSearchOption.conditionId"
+        multiple
+        placeholder="조건을 선택하세요."
+      >
         <ElOption
           v-for="(condition, index) in watchConditions.filter((c) =>
             logSearchOption.directoryId?.includes(c.directoryId)
@@ -35,7 +43,11 @@
       />
     </div>
     <div>
-      <ElSwitch class="switch" v-model="logAutoRefresh" inactive-text="자동 새로고침" />
+      <ElSwitch
+        class="switch"
+        v-model="logAutoRefresh"
+        inactive-text="자동 새로고침"
+      />
     </div>
   </div>
   <ElTable :data="logs" table-layout="auto">
@@ -58,7 +70,12 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import type { Ref } from "vue";
-import type { Log, LogSearchOption, WatchCondition, WatchDirectory } from "@conveyor/types";
+import type {
+  Log,
+  LogSearchOption,
+  WatchCondition,
+  WatchDirectory,
+} from "@conveyor/types";
 
 const watchDirectories: Ref<WatchDirectory[]> = ref([]);
 await fetch("/api/watch-directory")
@@ -174,9 +191,12 @@ setInterval(async () => {
 watch(
   () => logSearchOption.value.directoryId,
   async () => {
-    logSearchOption.value.conditionId = logSearchOption.value.conditionId?.filter((id) =>
-      logSearchOption.value.directoryId?.includes(watchConditions.value.find((c) => c.id === id)?.directoryId ?? 0)
-    );
+    logSearchOption.value.conditionId =
+      logSearchOption.value.conditionId?.filter((id) =>
+        logSearchOption.value.directoryId?.includes(
+          watchConditions.value.find((c) => c.id === id)?.directoryId ?? 0
+        )
+      );
   }
 );
 watch(
@@ -261,12 +281,22 @@ async function load() {
         return;
       }
       res = res.map((log: Log) => {
-        const directory = watchDirectories.value.find((d) => d.id === log.directoryId);
-        const condition = watchConditions.value.find((c) => c.id === log.conditionId);
+        const directory = watchDirectories.value.find(
+          (d) => d.id === log.directoryId
+        );
+        const condition = watchConditions.value.find(
+          (c) => c.id === log.conditionId
+        );
         return {
           ...log,
-          directoryName: (directory?.name || (directory?.id ? "ID " + directory.id : null)) ?? "삭제된 폴더",
-          conditionName: (condition?.name || (condition?.id ? "ID " + condition.id : null)) ?? "삭제된 조건",
+          directoryName:
+            (directory?.name ||
+              (directory?.id ? "ID " + directory.id : null)) ??
+            "삭제된 폴더",
+          conditionName:
+            (condition?.name ||
+              (condition?.id ? "ID " + condition.id : null)) ??
+            "삭제된 조건",
         };
       });
       logs.value = res;

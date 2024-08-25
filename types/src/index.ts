@@ -23,7 +23,9 @@ export function isWatchDirectory(obj: any): obj is Omit<WatchDirectory, "id"> {
   );
 }
 
-export function isWatchDirectoryPreset(obj: any): obj is Omit<WatchDirectoryPreset, "id"> {
+export function isWatchDirectoryPreset(
+  obj: any
+): obj is Omit<WatchDirectoryPreset, "id"> {
   return isWatchDirectory(obj);
 }
 
@@ -58,7 +60,9 @@ export function isWatchCondition(obj: any): obj is Omit<WatchCondition, "id"> {
   );
 }
 
-export function isWatchConditionPreset(obj: any): obj is Omit<WatchConditionPreset, "id"> {
+export function isWatchConditionPreset(
+  obj: any
+): obj is Omit<WatchConditionPreset, "id"> {
   return (
     typeof obj.name === "string" &&
     typeof obj.enabled === "boolean" &&

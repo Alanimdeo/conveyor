@@ -4,8 +4,17 @@
       <ElTabPane label="감시 폴더" name="watch-directories">
         <div class="container">
           <div class="end top-bar">
-            <ElInput class="search" v-model="query" placeholder="검색"></ElInput>
-            <ElButton type="primary" :icon="Plus" @click="openCreateWatchDirectoryDialog">추가</ElButton>
+            <ElInput
+              class="search"
+              v-model="query"
+              placeholder="검색"
+            ></ElInput>
+            <ElButton
+              type="primary"
+              :icon="Plus"
+              @click="openCreateWatchDirectoryDialog"
+              >추가</ElButton
+            >
           </div>
 
           <ElEmpty
@@ -28,7 +37,12 @@
                   </span>
                 </div>
                 <div>
-                  <ElButton link type="primary" :icon="Edit" @click="editWatchDirectoryPresetDialog(preset.id)">
+                  <ElButton
+                    link
+                    type="primary"
+                    :icon="Edit"
+                    @click="editWatchDirectoryPresetDialog(preset.id)"
+                  >
                     편집
                   </ElButton>
                   <ElButton
@@ -51,8 +65,17 @@
       <ElTabPane label="감시 조건" name="watch-conditions">
         <div class="container">
           <div class="end top-bar">
-            <ElInput class="search" v-model="query" placeholder="검색"></ElInput>
-            <ElButton type="primary" :icon="Plus" @click="openCreateWatchConditionDialog()">추가</ElButton>
+            <ElInput
+              class="search"
+              v-model="query"
+              placeholder="검색"
+            ></ElInput>
+            <ElButton
+              type="primary"
+              :icon="Plus"
+              @click="openCreateWatchConditionDialog()"
+              >추가</ElButton
+            >
           </div>
 
           <ElEmpty
@@ -75,7 +98,12 @@
                   </span>
                 </div>
                 <div>
-                  <ElButton link type="primary" :icon="Edit" @click="editWatchConditionPresetDialog(preset.id)">
+                  <ElButton
+                    link
+                    type="primary"
+                    :icon="Edit"
+                    @click="editWatchConditionPresetDialog(preset.id)"
+                  >
                     편집
                   </ElButton>
                   <ElButton
@@ -103,7 +131,9 @@
     :options="selectedWatchDirectoryPreset"
     :loading="watchDirectorySubmitting"
     :title="watchDirectoryDialogTexts[watchDirectoryDialogMode].title"
-    :submit-button-text="watchDirectoryDialogTexts[watchDirectoryDialogMode].submit"
+    :submit-button-text="
+      watchDirectoryDialogTexts[watchDirectoryDialogMode].submit
+    "
     @create="submitWatchDirectoryPreset()"
   />
 
@@ -114,11 +144,18 @@
     v-model:has-rename-pattern="selectedWatchConditionHasRenamePattern"
     :rename-pattern="selectedWatchConditionRenamePattern"
     :title="watchConditionDialogTexts[watchConditionDialogMode].title"
-    :submit-button-text="watchConditionDialogTexts[watchConditionDialogMode].submit"
+    :submit-button-text="
+      watchConditionDialogTexts[watchConditionDialogMode].submit
+    "
     @create="submitWatchConditionPreset()"
   />
 
-  <RemoveDialog v-model="removeDialog" title="프리셋 삭제" :name="removeName" @confirm="remove()" />
+  <RemoveDialog
+    v-model="removeDialog"
+    title="프리셋 삭제"
+    :name="removeName"
+    @confirm="remove()"
+  />
 </template>
 
 <script setup lang="ts">
@@ -126,7 +163,11 @@ import { ref, watch } from "vue";
 import { Delete, Edit, Plus } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { getRegExp } from "korean-regexp";
-import type { RenamePattern, WatchConditionPreset, WatchDirectoryPreset } from "@conveyor/types";
+import type {
+  RenamePattern,
+  WatchConditionPreset,
+  WatchDirectoryPreset,
+} from "@conveyor/types";
 import WatchDirectoryDialog from "@/components/WatchDirectoryDialog.vue";
 import WatchConditionDialog from "@/components/WatchConditionDialog.vue";
 import RemoveDialog from "@/components/RemoveDialog.vue";
@@ -147,7 +188,9 @@ const watchDirectoryDialogTexts = {
     submit: "편집",
   },
 };
-const selectedWatchDirectoryPreset = ref<{ id?: number } & Omit<WatchDirectoryPreset, "id">>({
+const selectedWatchDirectoryPreset = ref<
+  { id?: number } & Omit<WatchDirectoryPreset, "id">
+>({
   name: "",
   enabled: true,
   path: "",
@@ -161,7 +204,10 @@ const watchDirectorySubmitting = ref(false);
 function openCreateWatchDirectoryDialog() {
   watchDirectoryDialogMode.value = "create";
 
-  selectedWatchDirectoryPreset.value = Object.assign({}, selectedWatchDirectoryPreset.value);
+  selectedWatchDirectoryPreset.value = Object.assign(
+    {},
+    selectedWatchDirectoryPreset.value
+  );
 
   watchDirectoryDialog.value = true;
 }
@@ -169,7 +215,9 @@ function openCreateWatchDirectoryDialog() {
 async function editWatchDirectoryPresetDialog(id: number) {
   watchDirectoryDialogMode.value = "edit";
 
-  const preset = await fetch(`/api/watch-directory-preset/${id}`).then((res) => res.json());
+  const preset = await fetch(`/api/watch-directory-preset/${id}`).then((res) =>
+    res.json()
+  );
 
   selectedWatchDirectoryPreset.value = Object.assign({}, preset);
 
@@ -181,7 +229,9 @@ async function submitWatchDirectoryPreset() {
 
   const response = await fetch(
     `/api/watch-directory-preset${
-      watchDirectoryDialogMode.value === "edit" ? "/" + selectedWatchDirectoryPreset.value.id : ""
+      watchDirectoryDialogMode.value === "edit"
+        ? "/" + selectedWatchDirectoryPreset.value.id
+        : ""
     }`,
     {
       method: watchDirectoryDialogMode.value === "create" ? "POST" : "PATCH",
@@ -199,7 +249,9 @@ async function submitWatchDirectoryPreset() {
     return;
   }
 
-  ElMessage.success(`프리셋을 ${watchDirectoryDialogTexts[watchDirectoryDialogMode.value].submit}했습니다.`);
+  ElMessage.success(
+    `프리셋을 ${watchDirectoryDialogTexts[watchDirectoryDialogMode.value].submit}했습니다.`
+  );
   watchDirectoryDialog.value = false;
   watchDirectorySubmitting.value = false;
   await fetchWatchDirectoryPresets();
@@ -219,7 +271,9 @@ const watchConditionDialogTexts = {
     submit: "편집",
   },
 };
-const selectedWatchConditionPreset = ref<{ id?: number } & Omit<WatchConditionPreset, "id">>({
+const selectedWatchConditionPreset = ref<
+  { id?: number } & Omit<WatchConditionPreset, "id">
+>({
   name: "",
   enabled: true,
   type: "all",
@@ -265,12 +319,17 @@ function openCreateWatchConditionDialog() {
 async function editWatchConditionPresetDialog(id: number) {
   watchConditionDialogMode.value = "edit";
 
-  const preset = await fetch(`/api/watch-condition-preset/${id}`).then((res) => res.json());
+  const preset = await fetch(`/api/watch-condition-preset/${id}`).then((res) =>
+    res.json()
+  );
 
   selectedWatchConditionPreset.value = Object.assign({}, preset);
   selectedWatchConditionHasRenamePattern.value = !!preset.renamePattern;
   if (selectedWatchConditionPreset.value.renamePattern) {
-    selectedWatchConditionRenamePattern.value = Object.assign({}, selectedWatchConditionPreset.value.renamePattern);
+    selectedWatchConditionRenamePattern.value = Object.assign(
+      {},
+      selectedWatchConditionPreset.value.renamePattern
+    );
     selectedWatchConditionPreset.value.renamePattern = undefined;
   }
 
@@ -282,7 +341,9 @@ async function submitWatchConditionPreset() {
 
   const response = await fetch(
     `/api/watch-condition-preset${
-      watchConditionDialogMode.value === "edit" ? "/" + selectedWatchConditionPreset.value.id : ""
+      watchConditionDialogMode.value === "edit"
+        ? "/" + selectedWatchConditionPreset.value.id
+        : ""
     }`,
     {
       method: watchConditionDialogMode.value === "create" ? "POST" : "PATCH",
@@ -305,7 +366,9 @@ async function submitWatchConditionPreset() {
     return;
   }
 
-  ElMessage.success(`프리셋을 ${watchConditionDialogTexts[watchConditionDialogMode.value].submit}했습니다.`);
+  ElMessage.success(
+    `프리셋을 ${watchConditionDialogTexts[watchConditionDialogMode.value].submit}했습니다.`
+  );
   watchConditionDialog.value = false;
   watchConditionSubmitting.value = false;
   await fetchWatchConditionPresets();
@@ -322,7 +385,10 @@ async function fetchWatchConditionPresets() {
 }
 
 const removeDialog = ref(false);
-const removeTypeId = ref<{ type: "watch-directory" | "watch-condition"; id: number }>({
+const removeTypeId = ref<{
+  type: "watch-directory" | "watch-condition";
+  id: number;
+}>({
   type: "watch-directory",
   id: 0,
 });
@@ -335,16 +401,21 @@ watch(removeTypeId, (value) => {
 
   if (removeTypeId.value.type === "watch-directory") {
     removeName.value =
-      watchDirectoryPresets.value.find((preset) => preset.id === value.id)?.name || `이름 없는 폴더 #${value.id}`;
+      watchDirectoryPresets.value.find((preset) => preset.id === value.id)
+        ?.name || `이름 없는 폴더 #${value.id}`;
   } else {
     removeName.value =
-      watchConditionPresets.value.find((preset) => preset.id === value.id)?.name || `이름 없는 조건 #${value.id}`;
+      watchConditionPresets.value.find((preset) => preset.id === value.id)
+        ?.name || `이름 없는 조건 #${value.id}`;
   }
 });
 async function remove() {
-  const response = await fetch(`/api/${removeTypeId.value.type}-preset/${removeTypeId.value.id}`, {
-    method: "DELETE",
-  });
+  const response = await fetch(
+    `/api/${removeTypeId.value.type}-preset/${removeTypeId.value.id}`,
+    {
+      method: "DELETE",
+    }
+  );
   if (!response.ok) {
     ElMessage.error("프리셋을 삭제하는 데 실패했습니다.");
     return;
@@ -366,7 +437,11 @@ watch(query, (value) => {
     queryRegExp.value = null;
     return;
   }
-  queryRegExp.value = getRegExp(value, { fuzzy: true, ignoreCase: true, initialSearch: true });
+  queryRegExp.value = getRegExp(value, {
+    fuzzy: true,
+    ignoreCase: true,
+    initialSearch: true,
+  });
 });
 
 watch(activeTab, (value, oldValue) => {
