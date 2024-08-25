@@ -153,10 +153,22 @@
                       <span class="card-title">{{
                         condition.name || "이름 없는 조건"
                       }}</span>
-                      <ElTag v-if="condition.enabled" type="success"
-                        >사용 중</ElTag
+                      <ElTag
+                        v-if="condition.enabled"
+                        class="pointer"
+                        type="success"
+                        @click="toggleCondition(condition.id)"
                       >
-                      <ElTag v-else type="danger">비활성화</ElTag>
+                        사용 중
+                      </ElTag>
+                      <ElTag
+                        v-else
+                        class="pointer"
+                        type="danger"
+                        @click="toggleCondition(condition.id)"
+                      >
+                        비활성화
+                      </ElTag>
                     </div>
                     <div>
                       <ElButton
@@ -517,7 +529,7 @@ function openCreateDialog() {
   createConditionDialog.value = true;
 }
 
-function editWatchCondition(id: number) {
+function editWatchCondition(id: number, openDialog: boolean = true) {
   conditionDialogMode.value = "edit";
   createConditionOptions.value = Object.assign(
     {},
@@ -530,7 +542,9 @@ function editWatchCondition(id: number) {
     );
     createConditionOptionsHasRenamePattern.value = true;
   }
-  createConditionDialog.value = true;
+  if (openDialog) {
+    createConditionDialog.value = true;
+  }
 }
 
 const createConditionDialog = ref(false);
@@ -590,6 +604,12 @@ async function createCondition() {
 
   creatingCondition.value = false;
   createConditionDialog.value = false;
+}
+
+async function toggleCondition(id: number) {
+  editWatchCondition(id, false);
+  createConditionOptions.value.enabled = !createConditionOptions.value.enabled;
+  await createCondition();
 }
 
 const presetDialog = ref(false);

@@ -8,6 +8,9 @@ body {
 .el-alert__description {
   margin-top: 0 !important;
 }
+.pointer {
+  cursor: pointer;
+}
 
 /* Layout */
 .flex {
