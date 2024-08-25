@@ -176,8 +176,8 @@ export class Database {
   }
 
   addWatchDirectory(directory: Omit<WatchDirectory, "id">) {
-    const existing = this.getWatchDirectoryByPath(directory.path);
-    if (existing) {
+    const exists = this.getWatchDirectoryByPath(directory.path);
+    if (exists) {
       throw new Error(`Watch directory already exists: ${directory.path}`);
     }
 
@@ -185,7 +185,7 @@ export class Database {
     this.run(sql, [
       directory.name,
       directory.enabled,
-      directory.path.normalize,
+      directory.path.normalize(),
       directory.recursive,
       directory.usePolling,
       directory.interval || null,
