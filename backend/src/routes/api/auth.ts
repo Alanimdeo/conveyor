@@ -21,7 +21,10 @@ router.post("/login", forceJSON, isNotLoggedIn, async (req, res) => {
   }
   const adminId = req.db.getAdminId();
   const adminPasswordHash = req.db.getAdminPasswordHash();
-  if (username !== adminId || !(await argon2.verify(adminPasswordHash, password))) {
+  if (
+    username !== adminId ||
+    !(await argon2.verify(adminPasswordHash, password))
+  ) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }

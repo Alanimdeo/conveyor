@@ -36,7 +36,9 @@ export class Database {
     return this.get<{
       count: number;
       enabled: number;
-    }>("SELECT COUNT(*) AS count, COUNT(CASE WHEN enabled = 1 THEN 1 END) AS enabled FROM watch_directories");
+    }>(
+      "SELECT COUNT(*) AS count, COUNT(CASE WHEN enabled = 1 THEN 1 END) AS enabled FROM watch_directories"
+    );
   }
 
   getWatchDirectories() {
@@ -44,11 +46,17 @@ export class Database {
     return query.map(this.booleanizeWatchDirectory);
   }
   getWatchDirectoryById(id: number) {
-    return this.booleanizeWatchDirectory(this.get<WatchDirectory>("SELECT * FROM watch_directories WHERE id=?", [id]));
+    return this.booleanizeWatchDirectory(
+      this.get<WatchDirectory>("SELECT * FROM watch_directories WHERE id=?", [
+        id,
+      ])
+    );
   }
   getWatchDirectoryByPath(path: string) {
     return this.booleanizeWatchDirectory(
-      this.get<WatchDirectory>("SELECT * FROM watch_directories WHERE path=?", [path])
+      this.get<WatchDirectory>("SELECT * FROM watch_directories WHERE path=?", [
+        path,
+      ])
     );
   }
 
@@ -64,12 +72,17 @@ export class Database {
   }
 
   getWatchDirectoryPresets() {
-    const query = this.all<WatchDirectoryPreset[]>("SELECT id, name FROM watch_directory_presets");
+    const query = this.all<WatchDirectoryPreset[]>(
+      "SELECT id, name FROM watch_directory_presets"
+    );
     return query.map(this.booleanizeWatchDirectoryPreset);
   }
   getWatchDirectoryPreset(id: number) {
     return this.booleanizeWatchDirectoryPreset(
-      this.get<WatchDirectoryPreset>("SELECT * FROM watch_directory_presets WHERE id=?", [id])
+      this.get<WatchDirectoryPreset>(
+        "SELECT * FROM watch_directory_presets WHERE id=?",
+        [id]
+      )
     );
   }
 
@@ -88,10 +101,15 @@ export class Database {
     return this.get<{
       count: number;
       enabled: number;
-    }>("SELECT COUNT(*) AS count, COUNT(CASE WHEN enabled = 1 THEN 1 END) AS enabled FROM watch_conditions");
+    }>(
+      "SELECT COUNT(*) AS count, COUNT(CASE WHEN enabled = 1 THEN 1 END) AS enabled FROM watch_conditions"
+    );
   }
 
-  getWatchConditions(directoryId?: number, options?: { enabledOnly?: boolean }) {
+  getWatchConditions(
+    directoryId?: number,
+    options?: { enabledOnly?: boolean }
+  ) {
     let sql = "SELECT * FROM watch_conditions";
     const conditions: string[] = [];
     if (directoryId) {
@@ -108,7 +126,11 @@ export class Database {
     return result.map(this.booleanizeWatchCondition);
   }
   getWatchCondition(id: number) {
-    return this.booleanizeWatchCondition(this.get<WatchCondition>("SELECT * FROM watch_conditions WHERE id=?", [id]));
+    return this.booleanizeWatchCondition(
+      this.get<WatchCondition>("SELECT * FROM watch_conditions WHERE id=?", [
+        id,
+      ])
+    );
   }
 
   booleanizeWatchCondition(condition: WatchCondition) {
@@ -117,19 +139,27 @@ export class Database {
     }
     condition.enabled = Boolean(condition.enabled);
     condition.useRegExp = Boolean(condition.useRegExp);
-    if (condition.renamePattern && typeof condition.renamePattern === "string") {
+    if (
+      condition.renamePattern &&
+      typeof condition.renamePattern === "string"
+    ) {
       condition.renamePattern = JSON.parse(condition.renamePattern);
     }
     return condition;
   }
 
   getWatchConditionPresets() {
-    const query = this.all<WatchConditionPreset[]>("SELECT id, name FROM watch_condition_presets");
+    const query = this.all<WatchConditionPreset[]>(
+      "SELECT id, name FROM watch_condition_presets"
+    );
     return query.map(this.booleanizeWatchConditionPreset);
   }
   getWatchConditionPreset(id: number) {
     return this.booleanizeWatchConditionPreset(
-      this.get<WatchConditionPreset>("SELECT * FROM watch_condition_presets WHERE id=?", [id])
+      this.get<WatchConditionPreset>(
+        "SELECT * FROM watch_condition_presets WHERE id=?",
+        [id]
+      )
     );
   }
 
@@ -146,8 +176,8 @@ export class Database {
   }
 
   addWatchDirectory(directory: Omit<WatchDirectory, "id">) {
-    const existing = this.getWatchDirectoryByPath(directory.path);
-    if (existing) {
+    const exists = this.getWatchDirectoryByPath(directory.path);
+    if (exists) {
       throw new Error(`Watch directory already exists: ${directory.path}`);
     }
 
@@ -155,7 +185,7 @@ export class Database {
     this.run(sql, [
       directory.name,
       directory.enabled,
-      directory.path.normalize,
+      directory.path.normalize(),
       directory.recursive,
       directory.usePolling,
       directory.interval || null,
@@ -165,7 +195,10 @@ export class Database {
     const id = this.get<{ id: number }>("SELECT last_insert_rowid() AS id").id;
     return id;
   }
-  updateWatchDirectory(id: number, directory: Omit<WatchDirectory, "id"> | WatchDirectory) {
+  updateWatchDirectory(
+    id: number,
+    directory: Omit<WatchDirectory, "id"> | WatchDirectory
+  ) {
     const sql = `UPDATE watch_directories SET name=?, enabled=?, path=?, recursive=?, usePolling=?, interval=?, ignoreDotFiles=? WHERE id=?`;
     this.run(sql, [
       directory.name,
@@ -195,7 +228,10 @@ export class Database {
       preset.ignoreDotFiles,
     ]);
   }
-  updateWatchDirectoryPreset(id: number, preset: Omit<WatchDirectoryPreset, "id"> | WatchDirectoryPreset) {
+  updateWatchDirectoryPreset(
+    id: number,
+    preset: Omit<WatchDirectoryPreset, "id"> | WatchDirectoryPreset
+  ) {
     const sql = `UPDATE watch_directory_presets SET name=?, enabled=?, path=?, recursive=?, usePolling=?, interval=?, ignoreDotFiles=? WHERE id=?`;
     this.run(sql, [
       preset.name,
@@ -227,7 +263,10 @@ export class Database {
       condition.renamePattern ? JSON.stringify(condition.renamePattern) : null,
     ]);
   }
-  updateWatchCondition(id: number, condition: Omit<WatchCondition, "id"> | WatchCondition) {
+  updateWatchCondition(
+    id: number,
+    condition: Omit<WatchCondition, "id"> | WatchCondition
+  ) {
     const sql = `UPDATE watch_conditions SET name=?, directoryId=?, enabled=?, priority=?, type=?, useRegExp=?, pattern=?, destination=?, delay=?, renamePattern=? WHERE id=?`;
     this.run(sql, [
       condition.name,
@@ -261,7 +300,10 @@ export class Database {
       preset.renamePattern ? JSON.stringify(preset.renamePattern) : null,
     ]);
   }
-  updateWatchConditionPreset(id: number, preset: Omit<WatchConditionPreset, "id"> | WatchConditionPreset) {
+  updateWatchConditionPreset(
+    id: number,
+    preset: Omit<WatchConditionPreset, "id"> | WatchConditionPreset
+  ) {
     const sql = `UPDATE watch_condition_presets SET name=?, enabled=?, priority=?, type=?, useRegExp=?, pattern=?, destination=?, delay=?, renamePattern=? WHERE id=?`;
     this.run(sql, [
       preset.name,
@@ -280,8 +322,13 @@ export class Database {
     this.run("DELETE FROM watch_condition_presets WHERE id=?", [id]);
   }
 
-  createLog(log: { directoryId: number; conditionId: number; message: string }) {
-    const sql = "INSERT INTO logs(date, directoryId, conditionId, message) VALUES (?, ?, ?, ?)";
+  createLog(log: {
+    directoryId: number;
+    conditionId: number;
+    message: string;
+  }) {
+    const sql =
+      "INSERT INTO logs(date, directoryId, conditionId, message) VALUES (?, ?, ?, ?)";
     this.run(sql, [Date.now(), log.directoryId, log.conditionId, log.message]);
   }
   getLogCount(options?: LogSearchOption) {
@@ -311,7 +358,9 @@ export class Database {
     const result = this.all<Log[]>(sql, params);
     result.map((log) => {
       if (typeof log.date === "number") {
-        log.date = DateTime.fromMillis(log.date).toFormat(dateFormat || "yyyy-MM-dd hh:mm:ss a");
+        log.date = DateTime.fromMillis(log.date).toFormat(
+          dateFormat || "yyyy-MM-dd hh:mm:ss a"
+        );
       }
       return log;
     });
@@ -345,8 +394,16 @@ export class Database {
     }
     if (options.date) {
       option.push("date BETWEEN ? AND ?");
-      params.push(options.date.from instanceof Date ? options.date.from.getTime() : options.date.from);
-      params.push(options.date.to instanceof Date ? options.date.to.getTime() : options.date.to);
+      params.push(
+        options.date.from instanceof Date
+          ? options.date.from.getTime()
+          : options.date.from
+      );
+      params.push(
+        options.date.to instanceof Date
+          ? options.date.to.getTime()
+          : options.date.to
+      );
     }
 
     let suffix = "";
@@ -372,7 +429,8 @@ export class Database {
   }
 
   getAdminPasswordHash() {
-    const sql = "SELECT value AS hash FROM info WHERE key = 'adminPasswordHash'";
+    const sql =
+      "SELECT value AS hash FROM info WHERE key = 'adminPasswordHash'";
     const result = this.get<{ hash: string }>(sql);
     return result?.hash;
   }
@@ -424,16 +482,23 @@ export class Database {
   }
 }
 
-export const CONVEYOR_DEFAULT_DATABASE_PATH = "/conveyor/config/database.sqlite";
+export const CONVEYOR_DEFAULT_DATABASE_PATH =
+  "/conveyor/config/database.sqlite";
 
-export function loadDatabase(databasePath: string = CONVEYOR_DEFAULT_DATABASE_PATH, create: boolean = false) {
+export function loadDatabase(
+  databasePath: string = CONVEYOR_DEFAULT_DATABASE_PATH,
+  create: boolean = false
+) {
   const db = new Database(databasePath, create);
   initializeTables(db);
   return db;
 }
 
 function isTableExists(db: Database, tableName: string) {
-  return !!db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`, [tableName]);
+  return !!db.get(
+    `SELECT name FROM sqlite_master WHERE type='table' AND name=?`,
+    [tableName]
+  );
 }
 
 function initializeTables(db: Database) {
@@ -446,7 +511,9 @@ function initializeTables(db: Database) {
 }
 
 function getLatestDatabaseVersion() {
-  return readdirSync(path.join(__dirname, "../alteration/scripts")).map(getVersion).sort(semver.rcompare)[0];
+  return readdirSync(path.join(__dirname, "../alteration/scripts"))
+    .map(getVersion)
+    .sort(semver.rcompare)[0];
 }
 
 const createTable: {
@@ -454,13 +521,19 @@ const createTable: {
 } = {
   info: async (db: Database) => {
     db.run("CREATE TABLE info (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
-    db.run("INSERT INTO info (key, value) VALUES (?, ?)", ["version", getLatestDatabaseVersion()]);
+    db.run("INSERT INTO info (key, value) VALUES (?, ?)", [
+      "version",
+      getLatestDatabaseVersion(),
+    ]);
     db.run("INSERT INTO info (key, value) VALUES (?, ?)", ["adminId", "admin"]);
     db.run("INSERT INTO info (key, value) VALUES (?, ?)", [
       "adminPasswordHash",
       "$argon2id$v=19$m=65536,t=3,p=4$yLsjeK7Fwc79lwpOcCht2Q$RgL0tVoJR9x3Sq5oxniEtauLNHTNhq99R+AMxeYQyuE",
     ]); // changeme
-    db.run("INSERT INTO info (key, value) VALUES (?, ?)", ["dateFormat", "yyyy-MM-dd hh:mm:ss a"]);
+    db.run("INSERT INTO info (key, value) VALUES (?, ?)", [
+      "dateFormat",
+      "yyyy-MM-dd hh:mm:ss a",
+    ]);
   },
   watch_directories: async (db: Database) =>
     db.run(

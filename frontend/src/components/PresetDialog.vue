@@ -1,5 +1,9 @@
 <template>
-  <ElDialog v-model="opened" title="프리셋 선택" style="max-width: 560px; width: 100%">
+  <ElDialog
+    v-model="opened"
+    title="프리셋 선택"
+    style="max-width: 560px; width: 100%"
+  >
     <div class="end mb top-bar">
       <ElInput class="search" v-model="query" placeholder="검색"></ElInput>
     </div>
@@ -19,7 +23,10 @@
       </div>
     </span>
 
-    <ElEmpty v-if="presets.length === 0" description="프리셋이 없습니다. 프리셋 탭에서 추가해 보세요!" />
+    <ElEmpty
+      v-if="presets.length === 0"
+      description="프리셋이 없습니다. 프리셋 탭에서 추가해 보세요!"
+    />
 
     <div class="end">
       <ElButton @click="opened = false">취소</ElButton>
@@ -37,7 +44,10 @@
 </template>
 
 <script setup lang="ts">
-import type { WatchConditionPreset, WatchDirectoryPreset } from "@conveyor/types";
+import type {
+  WatchConditionPreset,
+  WatchDirectoryPreset,
+} from "@conveyor/types";
 import { computed, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { getRegExp } from "korean-regexp";
@@ -69,7 +79,11 @@ watch(query, (value) => {
     queryRegExp.value = null;
     return;
   }
-  queryRegExp.value = getRegExp(value, { fuzzy: true, ignoreCase: true, initialSearch: true });
+  queryRegExp.value = getRegExp(value, {
+    fuzzy: true,
+    ignoreCase: true,
+    initialSearch: true,
+  });
 });
 
 watch(opened, async (value) => {
@@ -90,13 +104,15 @@ watch(opened, async (value) => {
 const confirmDialog = ref(false);
 
 async function select(id: number) {
-  const response = await fetch(`/api/${props.type}-preset/${id}`).then((res) => {
-    if (res.ok) {
-      return res.json();
-    } else {
-      ElMessage.error("프리셋을 불러오지 못했습니다.");
+  const response = await fetch(`/api/${props.type}-preset/${id}`).then(
+    (res) => {
+      if (res.ok) {
+        return res.json();
+      } else {
+        ElMessage.error("프리셋을 불러오지 못했습니다.");
+      }
     }
-  });
+  );
   response.id = undefined;
   opened.value = false;
   confirmDialog.value = false;

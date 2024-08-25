@@ -7,7 +7,10 @@ import { Database } from "./db";
 
 export const ignoreDotFiles = /(^|[\/\\])\../;
 
-export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) {
+export function initializeWatcher(
+  watchDirectory: WatchDirectory,
+  db: Database
+) {
   if (!watchDirectory.enabled) {
     throw new Error("Not enabled.");
   }
@@ -16,7 +19,10 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
   watchDirectory.path = watchDirectory.path.replace("~", homeDirectory);
 
   const watchConditions = db.getWatchConditions(watchDirectory.id);
-  if (watchConditions.length === 0 || !watchConditions.some((condition) => condition.enabled)) {
+  if (
+    watchConditions.length === 0 ||
+    !watchConditions.some((condition) => condition.enabled)
+  ) {
     throw new Error("No active conditions found.");
   }
   const watcher = chokidar.watch(watchDirectory.path, {
@@ -26,7 +32,9 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
     depth: watchDirectory.recursive ? undefined : 0,
     usePolling: watchDirectory.usePolling,
     interval: watchDirectory.usePolling ? watchDirectory.interval : undefined,
-    binaryInterval: watchDirectory.usePolling ? watchDirectory.interval : undefined,
+    binaryInterval: watchDirectory.usePolling
+      ? watchDirectory.interval
+      : undefined,
   });
 
   watcher.on("ready", () => {
@@ -64,7 +72,10 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
         handling.delete(file);
         return;
       }
-      matchedCondition.destination = matchedCondition?.destination.replace("~", homeDirectory);
+      matchedCondition.destination = matchedCondition?.destination.replace(
+        "~",
+        homeDirectory
+      );
 
       const originalFilename = path.basename(file);
       let filename = originalFilename;
@@ -77,12 +88,17 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
         const pattern = matchedCondition.renamePattern.useRegExp
           ? new RegExp(matchedCondition.renamePattern.pattern)
           : matchedCondition.renamePattern.pattern;
-        filename = filename.replace(pattern, matchedCondition.renamePattern.replaceValue) + extension;
+        filename =
+          filename.replace(
+            pattern,
+            matchedCondition.renamePattern.replaceValue
+          ) + extension;
       }
 
       let logMessage = "";
       if (
-        (watchDirectory.path === "$" || watchDirectory.path === matchedCondition.destination) &&
+        (watchDirectory.path === "$" ||
+          watchDirectory.path === matchedCondition.destination) &&
         filename === originalFilename
       ) {
         logMessage = `Skipping ${originalFilename} as it is already in the destination folder.`;
@@ -95,7 +111,10 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
         });
         return;
       }
-      if (watchDirectory.path === "$" || watchDirectory.path === matchedCondition.destination) {
+      if (
+        watchDirectory.path === "$" ||
+        watchDirectory.path === matchedCondition.destination
+      ) {
         logMessage = `Renaming ${originalFilename} to ${filename}`;
       } else {
         logMessage = `Moving ${originalFilename} to ${matchedCondition.destination}`;
@@ -104,7 +123,10 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
         }
       }
 
-      const destination = matchedCondition.destination === "$" ? watchDirectory.path : matchedCondition.destination;
+      const destination =
+        matchedCondition.destination === "$"
+          ? watchDirectory.path
+          : matchedCondition.destination;
 
       setTimeout(move, matchedCondition.delay);
 
@@ -129,7 +151,10 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
     });
   }
 
-  function waitForUnchangingFileSize(file: string, callback: (success: boolean) => void) {
+  function waitForUnchangingFileSize(
+    file: string,
+    callback: (success: boolean) => void
+  ) {
     let lastSize = statSync(file).size;
     function check() {
       try {
@@ -149,7 +174,9 @@ export function initializeWatcher(watchDirectory: WatchDirectory, db: Database) 
   }
 
   function getConditionMatch(file: string, type: "file" | "directory") {
-    const watchConditions = db.getWatchConditions(watchDirectory.id, { enabledOnly: true });
+    const watchConditions = db.getWatchConditions(watchDirectory.id, {
+      enabledOnly: true,
+    });
     const filename = path.basename(file);
     const matches = watchConditions
       .filter((condition) => {
@@ -177,7 +204,9 @@ export function initializeWatchers(db: Database) {
     try {
       watchers[watchDirectory.id] = initializeWatcher(watchDirectory, db);
     } catch (err) {
-      console.log(`Skipping folder #${watchDirectory.id}: ${err instanceof Error ? err.message : err}`);
+      console.log(
+        `Skipping folder #${watchDirectory.id}: ${err instanceof Error ? err.message : err}`
+      );
     }
   }
 

@@ -2,10 +2,15 @@
   <div class="container">
     <div class="end top-bar">
       <ElInput class="search" v-model="query" placeholder="검색"></ElInput>
-      <ElButton type="primary" :icon="Plus" @click="openCreateDialog()">추가</ElButton>
+      <ElButton type="primary" :icon="Plus" @click="openCreateDialog()"
+        >추가</ElButton
+      >
     </div>
 
-    <ElEmpty v-if="watchDirectories.length === 0" description="폴더가 없습니다. 추가 버튼을 눌러 추가해 보세요!" />
+    <ElEmpty
+      v-if="watchDirectories.length === 0"
+      description="폴더가 없습니다. 추가 버튼을 눌러 추가해 보세요!"
+    />
 
     <span v-else v-for="directory in watchDirectories" :key="directory.id">
       <ElCard v-if="!queryRegExp || queryRegExp.test(directory.name)">
@@ -25,10 +30,21 @@
               <ElTag v-else type="danger">비활성화</ElTag>
             </div>
             <div>
-              <ElButton link type="primary" :icon="Edit" @click="router.push(`/directory/${directory.id}`)">
+              <ElButton
+                link
+                type="primary"
+                :icon="Edit"
+                @click="router.push(`/directory/${directory.id}`)"
+              >
                 편집
               </ElButton>
-              <ElButton link type="danger" :icon="Delete" @click="openRemoveDialog(directory.id)">삭제</ElButton>
+              <ElButton
+                link
+                type="danger"
+                :icon="Delete"
+                @click="openRemoveDialog(directory.id)"
+                >삭제</ElButton
+              >
             </div>
           </div>
         </template>
@@ -39,9 +55,17 @@
     </span>
   </div>
 
-  <RemoveDialog v-model="removeDialog" title="폴더 삭제" :name="selectedDirectoryName" @confirm="removeDirectory()">
+  <RemoveDialog
+    v-model="removeDialog"
+    title="폴더 삭제"
+    :name="selectedDirectoryName"
+    @confirm="removeDirectory()"
+  >
     <template #message>
-      <span> 폴더를 삭제하시겠습니까? 이 작업은 해당 폴더 및 모든 하위 조건들을 삭제하며 되돌릴 수 없습니다!</span>
+      <span>
+        폴더를 삭제하시겠습니까? 이 작업은 해당 폴더 및 모든 하위 조건들을
+        삭제하며 되돌릴 수 없습니다!</span
+      >
     </template>
   </RemoveDialog>
 
@@ -53,12 +77,18 @@
   >
     <template #before>
       <div class="mb end">
-        <ElButton type="success" :icon="Files" @click="presetDialog = true"> 프리셋 </ElButton>
+        <ElButton type="success" :icon="Files" @click="presetDialog = true">
+          프리셋
+        </ElButton>
       </div>
     </template>
   </WatchDirectoryDialog>
 
-  <PresetDialog v-model="presetDialog" type="watch-directory" @select="selectPreset" />
+  <PresetDialog
+    v-model="presetDialog"
+    type="watch-directory"
+    @select="selectPreset"
+  />
 </template>
 
 <script setup lang="ts">
@@ -126,7 +156,10 @@ async function createDirectory() {
   } else {
     ElMessage({
       type: "error",
-      message: h("div", null, [h("p", null, "폴더를 생성하지 못했습니다."), h("p", null, response.error)]),
+      message: h("div", null, [
+        h("p", null, "폴더를 생성하지 못했습니다."),
+        h("p", null, response.error),
+      ]),
     });
   }
 
@@ -141,16 +174,20 @@ function openRemoveDialog(id: number) {
 
 const selectedDirectoryName = computed(
   () =>
-    watchDirectories.value.find((directory) => directory.id === currentDirectoryId.value)?.name ||
-    `이름 없는 폴더 #${currentDirectoryId.value}`
+    watchDirectories.value.find(
+      (directory) => directory.id === currentDirectoryId.value
+    )?.name || `이름 없는 폴더 #${currentDirectoryId.value}`
 );
 
 const removingDirectory = ref(false);
 async function removeDirectory() {
   removingDirectory.value = true;
-  const response = await fetch("/api/watch-directory/" + currentDirectoryId.value, {
-    method: "DELETE",
-  }).then(async (res) => {
+  const response = await fetch(
+    "/api/watch-directory/" + currentDirectoryId.value,
+    {
+      method: "DELETE",
+    }
+  ).then(async (res) => {
     try {
       return await res.json();
     } catch (e) {
@@ -199,7 +236,11 @@ watch(query, (value) => {
     queryRegExp.value = null;
     return;
   }
-  queryRegExp.value = getRegExp(value, { fuzzy: true, ignoreCase: true, initialSearch: true });
+  queryRegExp.value = getRegExp(value, {
+    fuzzy: true,
+    ignoreCase: true,
+    initialSearch: true,
+  });
 });
 
 await refreshWatchDirectories();

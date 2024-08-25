@@ -2,15 +2,15 @@
   "folders": [
     {
       "name": "conveyor",
-      "path": "."
+      "path": ".",
     },
     {
       "name": "backend",
-      "path": "backend"
+      "path": "backend",
     },
     {
       "name": "frontend",
-      "path": "frontend"
-    }
-  ]
+      "path": "frontend",
+    },
+  ],
 }

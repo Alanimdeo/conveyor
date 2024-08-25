@@ -1,8 +1,17 @@
 <template>
   <ElHeader>
-    <ElMenu :default-active="activeIndex" mode="horizontal" :ellipsis="false" router>
+    <ElMenu
+      :default-active="activeIndex"
+      mode="horizontal"
+      :ellipsis="false"
+      router
+    >
       <div class="logo" @click="router.push('/')">
-        <img src="/logo.svg" alt="logo" :class="['logo-img', headerStore.isDark ? 'white' : null]" />
+        <img
+          src="/logo.svg"
+          alt="logo"
+          :class="['logo-img', headerStore.isDark ? 'white' : null]"
+        />
         <p class="logo-title">Conveyor</p>
       </div>
 
@@ -16,7 +25,11 @@
         <ElIcon class="button" :size="20" @click="settingsDialog = true">
           <Setting />
         </ElIcon>
-        <ElIcon class="button" :size="20" @click="router.push({ name: 'logout' })">
+        <ElIcon
+          class="button"
+          :size="20"
+          @click="router.push({ name: 'logout' })"
+        >
           <SwitchButton />
         </ElIcon>
       </div>
@@ -37,11 +50,19 @@
     </div>
     <div>
       <p>로그 날짜 표시 형식</p>
-      <ElAlert type="info" show-icon :closable="false" style="margin-bottom: 10px">
+      <ElAlert
+        type="info"
+        show-icon
+        :closable="false"
+        style="margin-bottom: 10px"
+      >
         <span>
           날짜 포맷은
-          <a href="https://moment.github.io/luxon/index.html#/formatting?id=table-of-tokens" target="_blank">이곳</a>을
-          참고하세요.
+          <a
+            href="https://moment.github.io/luxon/index.html#/formatting?id=table-of-tokens"
+            target="_blank"
+            >이곳</a
+          >을 참고하세요.
         </span>
       </ElAlert>
       <ElInput v-model="logDateFormat" placeholder="yyyy-MM-dd hh:mm:ss a" />
@@ -53,19 +74,35 @@
           <ElInput v-model="username" />
         </ElFormItem>
         <ElFormItem label="기존 비밀번호">
-          <ElInput type="password" autocomplete="current-password" v-model="password" />
+          <ElInput
+            type="password"
+            autocomplete="current-password"
+            v-model="password"
+          />
         </ElFormItem>
         <ElFormItem label="새 비밀번호">
-          <ElInput type="password" autocomplete="new-password" v-model="newPassword" />
+          <ElInput
+            type="password"
+            autocomplete="new-password"
+            v-model="newPassword"
+          />
         </ElFormItem>
         <ElFormItem label="새 비밀번호 확인">
-          <ElInput type="password" autocomplete="new-password" v-model="newPasswordConfirm" />
+          <ElInput
+            type="password"
+            autocomplete="new-password"
+            v-model="newPasswordConfirm"
+          />
         </ElFormItem>
         <ElFormItem>
           <ElButton
             type="primary"
             @click="changeUserInfo()"
-            :disabled="!username || !password || (newPassword ? newPassword !== newPasswordConfirm : false)"
+            :disabled="
+              !username ||
+              !password ||
+              (newPassword ? newPassword !== newPasswordConfirm : false)
+            "
           >
             저장
           </ElButton>

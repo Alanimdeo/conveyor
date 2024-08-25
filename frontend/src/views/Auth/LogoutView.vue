@@ -12,7 +12,8 @@ await fetch("/api/logout", {
   },
   body: JSON.stringify({}),
 });
-document.cookie = "connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+document.cookie =
+  "connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
 router.push({ name: "login" });
 </script>

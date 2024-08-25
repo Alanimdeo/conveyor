@@ -17,9 +17,13 @@ export function upgrade(db: Database) {
   const watchDirectories = db.getWatchDirectories();
   const watchConditions = db.getWatchConditions();
   for (const watchCondition of watchConditions) {
-    const { path } = watchDirectories.find((watchDirectory) => watchDirectory.id === watchCondition.directoryId)!;
+    const { path } = watchDirectories.find(
+      (watchDirectory) => watchDirectory.id === watchCondition.directoryId
+    )!;
     if (watchCondition.destination === path) {
-      db.run("UPDATE watch_conditions SET destination = '$' WHERE id = ?", [watchCondition.id]);
+      db.run("UPDATE watch_conditions SET destination = '$' WHERE id = ?", [
+        watchCondition.id,
+      ]);
     }
   }
 }

@@ -38,7 +38,8 @@ async function main() {
   server.use(express.urlencoded({ extended: false }));
   server.use(cookieParser());
 
-  const cookieExpiration = Number(process.env.COOKIE_EXPIRATION) || 30 * 60 * 1000;
+  const cookieExpiration =
+    Number(process.env.COOKIE_EXPIRATION) || 30 * 60 * 1000;
   server.use(
     session({
       secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString(),
@@ -77,7 +78,9 @@ async function main() {
   );
 
   const indexHtml =
-    process.env.NODE_ENV === "production" ? readFileSync(path.join(__dirname, "public/index.html"), "utf8") : undefined;
+    process.env.NODE_ENV === "production"
+      ? readFileSync(path.join(__dirname, "public/index.html"), "utf8")
+      : undefined;
 
   server.get("/*", (_, res) => {
     res.send(indexHtml);

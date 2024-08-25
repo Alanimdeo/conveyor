@@ -1,5 +1,9 @@
 <template>
-  <ElDialog v-model="opened" :title="title || '조건 추가'" style="max-width: 560px; width: 100%">
+  <ElDialog
+    v-model="opened"
+    :title="title || '조건 추가'"
+    style="max-width: 560px; width: 100%"
+  >
     <slot name="before"></slot>
     <ElForm label-position="left" :model="options">
       <ElFormItem label="이름">
@@ -24,10 +28,15 @@
       <ElFormItem label="패턴">
         <ElInput v-model="options.pattern" />
       </ElFormItem>
-      <ElAlert type="warning" show-icon :closable="false" style="margin-bottom: 10px">
+      <ElAlert
+        type="warning"
+        show-icon
+        :closable="false"
+        style="margin-bottom: 10px"
+      >
         <span>
-          이동 경로에 파일 이름을 포함하지 마세요! 이 행위는 의도되지 않은 동작을 일으킬 수 있으며, 파일 손상의 위험성이
-          있습니다.
+          이동 경로에 파일 이름을 포함하지 마세요! 이 행위는 의도되지 않은
+          동작을 일으킬 수 있으며, 파일 손상의 위험성이 있습니다.
         </span>
       </ElAlert>
       <ElFormItem label="이동 안 함">
@@ -110,7 +119,11 @@ const props = defineProps({
     required: false,
   },
 });
-const emit = defineEmits(["update:modelValue", "update:hasRenamePattern", "create"]);
+const emit = defineEmits([
+  "update:modelValue",
+  "update:hasRenamePattern",
+  "create",
+]);
 
 const opened = computed({
   get: () => props.modelValue,

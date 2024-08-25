@@ -9,7 +9,11 @@ export function checkId(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-export function checkDirectoryId(req: Request, res: Response, next: NextFunction) {
+export function checkDirectoryId(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   const directoryId = Number(req.params.directoryId);
   if (isNaN(directoryId)) {
     res.status(400).json({ error: "Invalid directoryId" });

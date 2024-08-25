@@ -4,7 +4,8 @@ import { Database } from "../modules/db";
 
 declare module "express-serve-static-core" {
   interface Request {
-    session: session.Session & Partial<session.SessionData> & { username?: string; time: number };
+    session: session.Session &
+      Partial<session.SessionData> & { username?: string; time: number };
     watchers: Record<number, FSWatcher>;
     db: Database;
   }
