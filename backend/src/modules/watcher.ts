@@ -1,7 +1,7 @@
 import { mkdirSync, renameSync, statSync } from "fs";
 import { homedir } from "os";
 import path from "path";
-import chokidar from "chokidar";
+import { FSWatcher, watch } from "chokidar";
 import type { WatchDirectory } from "@conveyor/types";
 import { Database } from "./db";
 
@@ -25,7 +25,7 @@ export function initializeWatcher(
   ) {
     throw new Error("No active conditions found.");
   }
-  const watcher = chokidar.watch(watchDirectory.path, {
+  const watcher = watch(watchDirectory.path, {
     ignored: watchDirectory.ignoreDotFiles ? ignoreDotFiles : undefined,
     ignoreInitial: true,
     persistent: true,
@@ -62,7 +62,7 @@ export function initializeWatcher(
       return;
     }
 
-    let interval: NodeJS.Timer | undefined;
+    let interval: NodeJS.Timeout | undefined;
 
     interval = waitForUnchangingFileSize(file, (success: boolean) => {
       if (interval) {
@@ -197,7 +197,7 @@ export function initializeWatcher(
 }
 
 export function initializeWatchers(db: Database) {
-  const watchers: Record<number, chokidar.FSWatcher> = {};
+  const watchers: Record<number, FSWatcher> = {};
 
   const watchDirectories = db.getWatchDirectories();
   for (const watchDirectory of watchDirectories) {
