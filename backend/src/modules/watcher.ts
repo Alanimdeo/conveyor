@@ -112,7 +112,7 @@ export function initializeWatcher(
         return;
       }
       if (
-        watchDirectory.path === "$" ||
+        matchedCondition.destination === "$" ||
         watchDirectory.path === matchedCondition.destination
       ) {
         logMessage = `Renaming ${originalFilename} to ${filename}`;
