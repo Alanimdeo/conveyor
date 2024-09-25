@@ -48,18 +48,19 @@
       <ElFormItem v-if="options.usePolling" label="폴링 간격 (ms)">
         <ElInputNumber v-model="options.interval" :min="100" :step="100" />
       </ElFormItem>
-      <div class="end">
-        <ElButton @click="opened = false">취소</ElButton>
-        <ElButton
-          type="primary"
-          @click="emit('create')"
-          :loading="loading"
-          :disabled="options.path === ''"
-        >
-          {{ submitButtonText || "생성" }}
-        </ElButton>
-      </div>
     </ElForm>
+    <slot name="after"></slot>
+    <div class="end">
+      <ElButton @click="opened = false">취소</ElButton>
+      <ElButton
+        type="primary"
+        @click="emit('create')"
+        :loading="loading"
+        :disabled="options.path === ''"
+      >
+        {{ submitButtonText || "생성" }}
+      </ElButton>
+    </div>
   </ElDialog>
 </template>
 

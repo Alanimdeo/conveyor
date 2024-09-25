@@ -66,23 +66,24 @@
           <ElSwitch v-model="renamePattern.excludeExtension" />
         </ElFormItem>
       </div>
-      <div class="end">
-        <ElButton @click="opened = false">취소</ElButton>
-        <ElButton
-          type="primary"
-          @click="emit('create')"
-          :loading="loading"
-          :disabled="
-            options.pattern == '' ||
-            options.destination == '' ||
-            (hasRenamePattern && renamePattern.pattern == '') ||
-            (hasRenamePattern && renamePattern.replaceValue == '')
-          "
-        >
-          {{ submitButtonText || "추가" }}
-        </ElButton>
-      </div>
     </ElForm>
+    <slot name="after"></slot>
+    <div class="end">
+      <ElButton @click="opened = false">취소</ElButton>
+      <ElButton
+        type="primary"
+        @click="emit('create')"
+        :loading="loading"
+        :disabled="
+          options.pattern == '' ||
+          options.destination == '' ||
+          (hasRenamePattern && renamePattern.pattern == '') ||
+          (hasRenamePattern && renamePattern.replaceValue == '')
+        "
+      >
+        {{ submitButtonText || "추가" }}
+      </ElButton>
+    </div>
   </ElDialog>
 </template>
 
