@@ -8,7 +8,8 @@ import session from "express-session";
 import rateLimit from "express-rate-limit";
 import { csrf } from "lusca";
 import createError from "http-errors";
-import createMemoryStore from "memorystore";
+import SqliteDatabase from "better-sqlite3";
+import createSqliteStore from "better-sqlite3-session-store";
 import logger from "morgan";
 import { loadDatabase } from "./modules/db";
 import { initializeWatchers } from "./modules/watcher";
@@ -17,7 +18,7 @@ import { alterDatabase } from "./alteration";
 
 dotenv.config();
 
-const MemoryStore = createMemoryStore(session);
+const SqliteStore = createSqliteStore(session);
 
 async function main() {
   const server = express();
@@ -40,12 +41,23 @@ async function main() {
 
   const cookieExpiration =
     Number(process.env.COOKIE_EXPIRATION) || 30 * 60 * 1000;
+  const sessionStore = new SqliteStore({
+    client: db.sql,
+    expired: {
+      clear: true,
+      intervalMs: cookieExpiration,
+    },
+  });
+  const sessionSecret = db.getSettings(["sessionSecret"]).sessionSecret;
   server.use(
     session({
-      secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString(),
+      secret:
+        process.env.SESSION_SECRET ||
+        sessionSecret ||
+        crypto.randomBytes(32).toString(),
       resave: false,
       saveUninitialized: false,
-      store: new MemoryStore({ checkPeriod: cookieExpiration }),
+      store: sessionStore,
       cookie: { maxAge: cookieExpiration, sameSite: "strict" },
     })
   );

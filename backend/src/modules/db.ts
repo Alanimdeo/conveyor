@@ -1,5 +1,6 @@
 import { existsSync, readdirSync } from "fs";
 import path from "path";
+import crypto from "crypto";
 import SqliteDatabase from "better-sqlite3";
 import type { Database as SqliteDatabaseType } from "better-sqlite3";
 import semver from "semver";
@@ -13,6 +14,11 @@ import type {
   WatchDirectoryPreset,
 } from "@conveyor/types";
 import { getVersion } from "../alteration";
+
+export type Settings = {
+  dateFormat: string;
+  sessionSecret: string;
+};
 
 export class Database {
   version: string;
@@ -439,15 +445,29 @@ export class Database {
     this.run(sql, [hash]);
   }
 
-  getSettings() {
-    const sql = "SELECT value AS dateFormat FROM info WHERE key = 'dateFormat'";
-    const result = this.get<{ dateFormat: string }>(sql);
-    return result;
+  getSettings(keys: (keyof Settings)[] = ["dateFormat", "sessionSecret"]) {
+    const sql = `SELECT * FROM info WHERE key IN ('${keys.join("', '")}')`;
+    const result = this.all<{ key: keyof Settings; value: string }[]>(sql);
+    const settings: Partial<Settings> = {};
+    for (const { key, value } of result) {
+      settings[key] = value;
+    }
+    return settings;
   }
-  updateSettings(settings: { dateFormat?: string }) {
+  updateSettings(settings: Partial<Settings>) {
+    const sql: ([key, value]: [string, string]) => [string, string[]] = ([
+      key,
+      value,
+    ]) => [`UPDATE info SET value = ? WHERE key = '${key}'`, [value]];
+    const updates = [];
     if (settings.dateFormat) {
-      const sql = "UPDATE info SET value = ? WHERE key = 'dateFormat'";
-      this.run(sql, [settings.dateFormat]);
+      updates.push(sql(["dateFormat", settings.dateFormat]));
+    }
+    if (settings.sessionSecret) {
+      updates.push(sql(["sessionSecret", settings.sessionSecret]));
+    }
+    for (const [query, params] of updates) {
+      this.run(query, params);
     }
   }
 
@@ -533,6 +553,10 @@ const createTable: {
     db.run("INSERT INTO info (key, value) VALUES (?, ?)", [
       "dateFormat",
       "yyyy-MM-dd hh:mm:ss a",
+    ]);
+    db.run("INSERT INTO info (key, value) VALUES (?, ?)", [
+      "sessionSecret",
+      crypto.randomBytes(32).toString(),
     ]);
   },
   watch_directories: async (db: Database) =>
