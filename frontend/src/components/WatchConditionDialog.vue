@@ -17,9 +17,9 @@
       </ElFormItem>
       <ElFormItem label="감시 유형">
         <ElRadioGroup v-model="options.type">
-          <ElRadio label="all">파일 및 폴더</ElRadio>
-          <ElRadio label="file">파일</ElRadio>
-          <ElRadio label="directory">폴더</ElRadio>
+          <ElRadio value="all">파일 및 폴더</ElRadio>
+          <ElRadio value="file">파일</ElRadio>
+          <ElRadio value="directory">폴더</ElRadio>
         </ElRadioGroup>
       </ElFormItem>
       <ElFormItem label="정규식 사용">
