@@ -48,46 +48,34 @@
       <ElFormItem v-if="options.usePolling" label="폴링 간격 (ms)">
         <ElInputNumber v-model="options.interval" :min="100" :step="100" />
       </ElFormItem>
-      <div class="end">
-        <ElButton @click="opened = false">취소</ElButton>
-        <ElButton
-          type="primary"
-          @click="emit('create')"
-          :loading="loading"
-          :disabled="options.path === ''"
-        >
-          {{ submitButtonText || "생성" }}
-        </ElButton>
-      </div>
     </ElForm>
+    <slot name="after"></slot>
+    <div class="end">
+      <ElButton @click="opened = false">취소</ElButton>
+      <ElButton
+        type="primary"
+        @click="emit('create')"
+        :loading="loading"
+        :disabled="props.disabled || options.path === ''"
+      >
+        {{ submitButtonText || "생성" }}
+      </ElButton>
+    </div>
   </ElDialog>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import type { WatchDirectory } from "@conveyor/types";
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  loading: {
-    type: Boolean,
-    required: true,
-  },
-  options: {
-    type: Object,
-    required: true,
-  },
-  title: {
-    type: String,
-    required: false,
-  },
-  submitButtonText: {
-    type: String,
-    required: false,
-  },
-});
+const props = defineProps<{
+  modelValue: boolean;
+  loading: boolean;
+  options: Partial<WatchDirectory>;
+  title?: string;
+  submitButtonText?: string;
+  disabled?: boolean;
+}>();
 const emit = defineEmits(["update:modelValue", "create"]);
 
 const opened = computed({

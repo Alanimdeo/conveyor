@@ -1,5 +1,6 @@
 import { existsSync, readdirSync } from "fs";
 import path from "path";
+import crypto from "crypto";
 import SqliteDatabase from "better-sqlite3";
 import type { Database as SqliteDatabaseType } from "better-sqlite3";
 import semver from "semver";
@@ -14,6 +15,11 @@ import type {
 } from "@conveyor/types";
 import { getVersion } from "../alteration";
 
+export type Settings = {
+  dateFormat: string;
+  sessionSecret: string;
+};
+
 export class Database {
   version: string;
   sql: SqliteDatabaseType;
@@ -22,7 +28,6 @@ export class Database {
     this.version = getLatestDatabaseVersion();
     if (existsSync(filename)) {
       this.sql = new SqliteDatabase(filename);
-      this.sql.pragma("journal_mode = WAL");
       return;
     }
 
@@ -43,24 +48,24 @@ export class Database {
 
   getWatchDirectories() {
     const query = this.all<WatchDirectory[]>("SELECT * FROM watch_directories");
-    return query.map(this.booleanizeWatchDirectory);
+    return query.map(this.parseWatchDirectory);
   }
   getWatchDirectoryById(id: number) {
-    return this.booleanizeWatchDirectory(
+    return this.parseWatchDirectory(
       this.get<WatchDirectory>("SELECT * FROM watch_directories WHERE id=?", [
         id,
       ])
     );
   }
   getWatchDirectoryByPath(path: string) {
-    return this.booleanizeWatchDirectory(
+    return this.parseWatchDirectory(
       this.get<WatchDirectory>("SELECT * FROM watch_directories WHERE path=?", [
         path,
       ])
     );
   }
 
-  booleanizeWatchDirectory(directory: WatchDirectory) {
+  parseWatchDirectory(directory: WatchDirectory) {
     if (!directory) {
       return directory;
     }
@@ -75,10 +80,10 @@ export class Database {
     const query = this.all<WatchDirectoryPreset[]>(
       "SELECT id, name FROM watch_directory_presets"
     );
-    return query.map(this.booleanizeWatchDirectoryPreset);
+    return query.map(this.parseWatchDirectoryPreset);
   }
   getWatchDirectoryPreset(id: number) {
-    return this.booleanizeWatchDirectoryPreset(
+    return this.parseWatchDirectoryPreset(
       this.get<WatchDirectoryPreset>(
         "SELECT * FROM watch_directory_presets WHERE id=?",
         [id]
@@ -86,7 +91,7 @@ export class Database {
     );
   }
 
-  booleanizeWatchDirectoryPreset(preset: WatchDirectoryPreset) {
+  parseWatchDirectoryPreset(preset: WatchDirectoryPreset) {
     if (!preset) {
       return preset;
     }
@@ -94,6 +99,9 @@ export class Database {
     preset.recursive = Boolean(preset.recursive);
     preset.usePolling = Boolean(preset.usePolling);
     preset.ignoreDotFiles = Boolean(preset.ignoreDotFiles);
+    if (typeof preset.customParameters === "string") {
+      preset.customParameters = JSON.parse(preset.customParameters);
+    }
     return preset;
   }
 
@@ -123,17 +131,17 @@ export class Database {
     }
     const params = directoryId ? [directoryId] : [];
     const result = this.all<WatchCondition[]>(sql, params);
-    return result.map(this.booleanizeWatchCondition);
+    return result.map(this.parseWatchCondition);
   }
   getWatchCondition(id: number) {
-    return this.booleanizeWatchCondition(
+    return this.parseWatchCondition(
       this.get<WatchCondition>("SELECT * FROM watch_conditions WHERE id=?", [
         id,
       ])
     );
   }
 
-  booleanizeWatchCondition(condition: WatchCondition) {
+  parseWatchCondition(condition: WatchCondition) {
     if (!condition) {
       return condition;
     }
@@ -152,10 +160,10 @@ export class Database {
     const query = this.all<WatchConditionPreset[]>(
       "SELECT id, name FROM watch_condition_presets"
     );
-    return query.map(this.booleanizeWatchConditionPreset);
+    return query.map(this.parseWatchConditionPreset);
   }
   getWatchConditionPreset(id: number) {
-    return this.booleanizeWatchConditionPreset(
+    return this.parseWatchConditionPreset(
       this.get<WatchConditionPreset>(
         "SELECT * FROM watch_condition_presets WHERE id=?",
         [id]
@@ -163,7 +171,7 @@ export class Database {
     );
   }
 
-  booleanizeWatchConditionPreset(preset: WatchConditionPreset) {
+  parseWatchConditionPreset(preset: WatchConditionPreset) {
     if (!preset) {
       return preset;
     }
@@ -171,6 +179,9 @@ export class Database {
     preset.useRegExp = Boolean(preset.useRegExp);
     if (preset.renamePattern && typeof preset.renamePattern === "string") {
       preset.renamePattern = JSON.parse(preset.renamePattern);
+    }
+    if (typeof preset.customParameters === "string") {
+      preset.customParameters = JSON.parse(preset.customParameters);
     }
     return preset;
   }
@@ -217,7 +228,7 @@ export class Database {
   }
 
   addWatchDirectoryPreset(preset: Omit<WatchDirectoryPreset, "id">) {
-    const sql = `INSERT INTO watch_directory_presets (name, enabled, path, recursive, usePolling, interval, ignoreDotFiles) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO watch_directory_presets (name, enabled, path, recursive, usePolling, interval, ignoreDotFiles, customParameters) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
     this.run(sql, [
       preset.name,
       preset.enabled,
@@ -226,13 +237,14 @@ export class Database {
       preset.usePolling,
       preset.interval || null,
       preset.ignoreDotFiles,
+      preset.customParameters ? JSON.stringify(preset.customParameters) : null,
     ]);
   }
   updateWatchDirectoryPreset(
     id: number,
     preset: Omit<WatchDirectoryPreset, "id"> | WatchDirectoryPreset
   ) {
-    const sql = `UPDATE watch_directory_presets SET name=?, enabled=?, path=?, recursive=?, usePolling=?, interval=?, ignoreDotFiles=? WHERE id=?`;
+    const sql = `UPDATE watch_directory_presets SET name=?, enabled=?, path=?, recursive=?, usePolling=?, interval=?, ignoreDotFiles=?, customParameters=? WHERE id=?`;
     this.run(sql, [
       preset.name,
       preset.enabled,
@@ -241,6 +253,7 @@ export class Database {
       preset.usePolling,
       preset.interval || null,
       preset.ignoreDotFiles,
+      preset.customParameters ? JSON.stringify(preset.customParameters) : null,
       id,
     ]);
   }
@@ -287,7 +300,7 @@ export class Database {
   }
 
   addWatchConditionPreset(preset: Omit<WatchConditionPreset, "id">) {
-    const sql = `INSERT INTO watch_condition_presets (name, enabled, priority, type, useRegExp, pattern, destination, delay, renamePattern) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO watch_condition_presets (name, enabled, priority, type, useRegExp, pattern, destination, delay, renamePattern, customParameters) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     this.run(sql, [
       preset.name,
       preset.enabled,
@@ -298,13 +311,14 @@ export class Database {
       preset.destination,
       preset.delay,
       preset.renamePattern ? JSON.stringify(preset.renamePattern) : null,
+      preset.customParameters ? JSON.stringify(preset.customParameters) : null,
     ]);
   }
   updateWatchConditionPreset(
     id: number,
     preset: Omit<WatchConditionPreset, "id"> | WatchConditionPreset
   ) {
-    const sql = `UPDATE watch_condition_presets SET name=?, enabled=?, priority=?, type=?, useRegExp=?, pattern=?, destination=?, delay=?, renamePattern=? WHERE id=?`;
+    const sql = `UPDATE watch_condition_presets SET name=?, enabled=?, priority=?, type=?, useRegExp=?, pattern=?, destination=?, delay=?, renamePattern=?, customParameters=? WHERE id=?`;
     this.run(sql, [
       preset.name,
       preset.enabled,
@@ -315,6 +329,7 @@ export class Database {
       preset.destination,
       preset.delay,
       preset.renamePattern ? JSON.stringify(preset.renamePattern) : null,
+      preset.customParameters ? JSON.stringify(preset.customParameters) : null,
       id,
     ]);
   }
@@ -439,15 +454,29 @@ export class Database {
     this.run(sql, [hash]);
   }
 
-  getSettings() {
-    const sql = "SELECT value AS dateFormat FROM info WHERE key = 'dateFormat'";
-    const result = this.get<{ dateFormat: string }>(sql);
-    return result;
+  getSettings(keys: (keyof Settings)[] = ["dateFormat", "sessionSecret"]) {
+    const sql = `SELECT * FROM info WHERE key IN ('${keys.join("', '")}')`;
+    const result = this.all<{ key: keyof Settings; value: string }[]>(sql);
+    const settings: Partial<Settings> = {};
+    for (const { key, value } of result) {
+      settings[key] = value;
+    }
+    return settings;
   }
-  updateSettings(settings: { dateFormat?: string }) {
+  updateSettings(settings: Partial<Settings>) {
+    const sql: ([key, value]: [string, string]) => [string, string[]] = ([
+      key,
+      value,
+    ]) => [`UPDATE info SET value = ? WHERE key = '${key}'`, [value]];
+    const updates = [];
     if (settings.dateFormat) {
-      const sql = "UPDATE info SET value = ? WHERE key = 'dateFormat'";
-      this.run(sql, [settings.dateFormat]);
+      updates.push(sql(["dateFormat", settings.dateFormat]));
+    }
+    if (settings.sessionSecret) {
+      updates.push(sql(["sessionSecret", settings.sessionSecret]));
+    }
+    for (const [query, params] of updates) {
+      this.run(query, params);
     }
   }
 
@@ -534,6 +563,10 @@ const createTable: {
       "dateFormat",
       "yyyy-MM-dd hh:mm:ss a",
     ]);
+    db.run("INSERT INTO info (key, value) VALUES (?, ?)", [
+      "sessionSecret",
+      crypto.randomBytes(32).toString(),
+    ]);
   },
   watch_directories: async (db: Database) =>
     db.run(
@@ -541,7 +574,7 @@ const createTable: {
     ),
   watch_directory_presets: async (db: Database) =>
     db.run(
-      "CREATE TABLE watch_directory_presets (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 1, path TEXT NOT NULL, recursive INTEGER NOT NULL DEFAULT 1, usePolling INTEGER NOT NULL DEFAULT 0, interval INTEGER, ignoreDotFiles INTEGER NOT NULL DEFAULT 1)"
+      "CREATE TABLE watch_directory_presets (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 1, path TEXT NOT NULL, recursive INTEGER NOT NULL DEFAULT 1, usePolling INTEGER NOT NULL DEFAULT 0, interval INTEGER, ignoreDotFiles INTEGER NOT NULL DEFAULT 1, customParameters TEXT NOT NULL DEFAULT '[]')"
     ),
   watch_conditions: async (db: Database) =>
     db.run(
@@ -549,7 +582,7 @@ const createTable: {
     ),
   watch_condition_presets: async (db: Database) =>
     db.run(
-      "CREATE TABLE watch_condition_presets (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 1, priority INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL DEFAULT 'all', useRegExp INTEGER NOT NULL DEFAULT 0, pattern TEXT NOT NULL, destination TEXT NOT NULL, delay INTEGER NOT NULL DEFAULT 0, renamePattern TEXT)"
+      "CREATE TABLE watch_condition_presets (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 1, priority INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL DEFAULT 'all', useRegExp INTEGER NOT NULL DEFAULT 0, pattern TEXT NOT NULL, destination TEXT NOT NULL, delay INTEGER NOT NULL DEFAULT 0, renamePattern TEXT, customParameters TEXT NOT NULL DEFAULT '[]')"
     ),
   logs: async (db: Database) =>
     db.run(

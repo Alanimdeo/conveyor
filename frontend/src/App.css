@@ -19,6 +19,9 @@ body {
 .flex-grow {
   flex-grow: 1;
 }
+.gap {
+  gap: 1rem;
+}
 .after {
   display: flex;
   align-items: center;

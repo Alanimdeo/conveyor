@@ -17,9 +17,9 @@
       </ElFormItem>
       <ElFormItem label="감시 유형">
         <ElRadioGroup v-model="options.type">
-          <ElRadio label="all">파일 및 폴더</ElRadio>
-          <ElRadio label="file">파일</ElRadio>
-          <ElRadio label="directory">폴더</ElRadio>
+          <ElRadio value="all">파일 및 폴더</ElRadio>
+          <ElRadio value="file">파일</ElRadio>
+          <ElRadio value="directory">폴더</ElRadio>
         </ElRadioGroup>
       </ElFormItem>
       <ElFormItem label="정규식 사용">
@@ -66,59 +66,42 @@
           <ElSwitch v-model="renamePattern.excludeExtension" />
         </ElFormItem>
       </div>
-      <div class="end">
-        <ElButton @click="opened = false">취소</ElButton>
-        <ElButton
-          type="primary"
-          @click="emit('create')"
-          :loading="loading"
-          :disabled="
-            options.pattern == '' ||
-            options.destination == '' ||
-            (hasRenamePattern && renamePattern.pattern == '') ||
-            (hasRenamePattern && renamePattern.replaceValue == '')
-          "
-        >
-          {{ submitButtonText || "추가" }}
-        </ElButton>
-      </div>
     </ElForm>
+    <slot name="after"></slot>
+    <div class="end">
+      <ElButton @click="opened = false">취소</ElButton>
+      <ElButton
+        type="primary"
+        @click="emit('create')"
+        :loading="loading"
+        :disabled="
+          props.disabled ||
+          options.pattern == '' ||
+          options.destination == '' ||
+          (hasRenamePattern && renamePattern.pattern == '') ||
+          (hasRenamePattern && renamePattern.replaceValue == '')
+        "
+      >
+        {{ submitButtonText || "추가" }}
+      </ElButton>
+    </div>
   </ElDialog>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import type { RenamePattern, WatchCondition } from "@conveyor/types";
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  loading: {
-    type: Boolean,
-    required: true,
-  },
-  options: {
-    type: Object,
-    required: true,
-  },
-  hasRenamePattern: {
-    type: Boolean,
-    required: true,
-  },
-  renamePattern: {
-    type: Object,
-    required: true,
-  },
-  title: {
-    type: String,
-    required: false,
-  },
-  submitButtonText: {
-    type: String,
-    required: false,
-  },
-});
+const props = defineProps<{
+  modelValue: boolean;
+  loading: boolean;
+  options: Partial<WatchCondition>;
+  hasRenamePattern: boolean;
+  renamePattern: RenamePattern;
+  title?: string;
+  submitButtonText?: string;
+  disabled?: boolean;
+}>();
 const emit = defineEmits([
   "update:modelValue",
   "update:hasRenamePattern",
