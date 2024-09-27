@@ -75,6 +75,7 @@
         @click="emit('create')"
         :loading="loading"
         :disabled="
+          props.disabled ||
           options.pattern == '' ||
           options.destination == '' ||
           (hasRenamePattern && renamePattern.pattern == '') ||
@@ -89,37 +90,18 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import type { RenamePattern, WatchCondition } from "@conveyor/types";
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  loading: {
-    type: Boolean,
-    required: true,
-  },
-  options: {
-    type: Object,
-    required: true,
-  },
-  hasRenamePattern: {
-    type: Boolean,
-    required: true,
-  },
-  renamePattern: {
-    type: Object,
-    required: true,
-  },
-  title: {
-    type: String,
-    required: false,
-  },
-  submitButtonText: {
-    type: String,
-    required: false,
-  },
-});
+const props = defineProps<{
+  modelValue: boolean;
+  loading: boolean;
+  options: Partial<WatchCondition>;
+  hasRenamePattern: boolean;
+  renamePattern: RenamePattern;
+  title?: string;
+  submitButtonText?: string;
+  disabled?: boolean;
+}>();
 const emit = defineEmits([
   "update:modelValue",
   "update:hasRenamePattern",

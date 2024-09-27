@@ -134,8 +134,16 @@
     :submit-button-text="
       watchDirectoryDialogTexts[watchDirectoryDialogMode].submit
     "
+    :disabled="!allowSave"
     @create="submitWatchDirectoryPreset()"
-  />
+  >
+    <template #after>
+      <PresetCustomParameters
+        v-model="allowSave"
+        :parameters="selectedWatchDirectoryPreset.customParameters"
+      />
+    </template>
+  </WatchDirectoryDialog>
 
   <WatchConditionDialog
     v-model="watchConditionDialog"
@@ -147,8 +155,16 @@
     :submit-button-text="
       watchConditionDialogTexts[watchConditionDialogMode].submit
     "
+    :disabled="!allowSave"
     @create="submitWatchConditionPreset()"
-  />
+  >
+    <template #after>
+      <PresetCustomParameters
+        v-model="allowSave"
+        :parameters="selectedWatchConditionPreset.customParameters"
+      />
+    </template>
+  </WatchConditionDialog>
 
   <RemoveDialog
     v-model="removeDialog"
@@ -163,6 +179,7 @@ import { ref, watch } from "vue";
 import { Delete, Edit, Plus } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { getRegExp } from "korean-regexp";
+import { canSaveCustomParameters } from "@/utils";
 import type {
   RenamePattern,
   WatchConditionPreset,
@@ -171,6 +188,9 @@ import type {
 import WatchDirectoryDialog from "@/components/WatchDirectoryDialog.vue";
 import WatchConditionDialog from "@/components/WatchConditionDialog.vue";
 import RemoveDialog from "@/components/RemoveDialog.vue";
+import PresetCustomParameters from "@/components/PresetCustomParameters.vue";
+
+const allowSave = ref(false);
 
 const activeTab = ref("watch-directories");
 
@@ -198,16 +218,24 @@ const selectedWatchDirectoryPreset = ref<
   usePolling: false,
   interval: 5000,
   ignoreDotFiles: true,
+  customParameters: [],
 });
 const watchDirectorySubmitting = ref(false);
 
 function openCreateWatchDirectoryDialog() {
   watchDirectoryDialogMode.value = "create";
 
-  selectedWatchDirectoryPreset.value = Object.assign(
-    {},
-    selectedWatchDirectoryPreset.value
-  );
+  selectedWatchDirectoryPreset.value = {
+    name: "",
+    enabled: true,
+    path: "",
+    recursive: true,
+    usePolling: false,
+    interval: 5000,
+    ignoreDotFiles: true,
+    customParameters: [],
+  };
+  allowSave.value = true;
 
   watchDirectoryDialog.value = true;
 }
@@ -220,6 +248,9 @@ async function editWatchDirectoryPresetDialog(id: number) {
   );
 
   selectedWatchDirectoryPreset.value = Object.assign({}, preset);
+  allowSave.value = canSaveCustomParameters(
+    selectedWatchDirectoryPreset.value.customParameters
+  );
 
   watchDirectoryDialog.value = true;
 }
@@ -282,6 +313,7 @@ const selectedWatchConditionPreset = ref<
   pattern: "",
   destination: "",
   delay: 0,
+  customParameters: [],
 });
 const selectedWatchConditionHasRenamePattern = ref(false);
 const selectedWatchConditionRenamePattern = ref<RenamePattern>({
@@ -304,6 +336,7 @@ function openCreateWatchConditionDialog() {
     pattern: "",
     destination: "",
     delay: 0,
+    customParameters: [],
   };
   selectedWatchConditionHasRenamePattern.value = false;
   selectedWatchConditionRenamePattern.value = {
@@ -312,6 +345,7 @@ function openCreateWatchConditionDialog() {
     replaceValue: "",
     excludeExtension: true,
   };
+  allowSave.value = true;
 
   watchConditionDialog.value = true;
 }
@@ -332,6 +366,9 @@ async function editWatchConditionPresetDialog(id: number) {
     );
     selectedWatchConditionPreset.value.renamePattern = undefined;
   }
+  allowSave.value = canSaveCustomParameters(
+    selectedWatchConditionPreset.value.customParameters
+  );
 
   watchConditionDialog.value = true;
 }

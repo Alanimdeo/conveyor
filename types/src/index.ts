@@ -9,7 +9,23 @@ export type WatchDirectory = {
   ignoreDotFiles: boolean;
 };
 
-export type WatchDirectoryPreset = WatchDirectory;
+export type WatchDirectoryPreset = WatchDirectory & {
+  customParameters: CustomParameter[];
+};
+
+export type CustomParameter = {
+  key: string;
+  label: string;
+};
+
+export function isCustomParameter(obj: any): obj is CustomParameter {
+  return (
+    obj.key &&
+    typeof obj.key === "string" &&
+    obj.label &&
+    typeof obj.label === "string"
+  );
+}
 
 export function isWatchDirectory(obj: any): obj is Omit<WatchDirectory, "id"> {
   return (
@@ -26,7 +42,17 @@ export function isWatchDirectory(obj: any): obj is Omit<WatchDirectory, "id"> {
 export function isWatchDirectoryPreset(
   obj: any
 ): obj is Omit<WatchDirectoryPreset, "id"> {
-  return isWatchDirectory(obj);
+  return (
+    typeof obj.enabled === "boolean" &&
+    typeof obj.name === "string" &&
+    typeof obj.path === "string" &&
+    typeof obj.recursive === "boolean" &&
+    typeof obj.usePolling === "boolean" &&
+    (obj.interval === undefined || typeof obj.interval === "number") &&
+    typeof obj.ignoreDotFiles === "boolean" &&
+    Array.isArray(obj.customParameters) &&
+    obj.customParameters.every(isCustomParameter)
+  );
 }
 
 export type WatchCondition = {
@@ -43,7 +69,9 @@ export type WatchCondition = {
   renamePattern?: RenamePattern;
 };
 
-export type WatchConditionPreset = Omit<WatchCondition, "directoryId">;
+export type WatchConditionPreset = Omit<WatchCondition, "directoryId"> & {
+  customParameters: CustomParameter[];
+};
 
 export function isWatchCondition(obj: any): obj is Omit<WatchCondition, "id"> {
   return (
@@ -72,7 +100,9 @@ export function isWatchConditionPreset(
     typeof obj.pattern === "string" &&
     typeof obj.destination === "string" &&
     typeof obj.delay === "number" &&
-    (obj.renamePattern === undefined || isRenamePattern(obj.renamePattern))
+    (obj.renamePattern === undefined || isRenamePattern(obj.renamePattern)) &&
+    Array.isArray(obj.customParameters) &&
+    obj.customParameters.every(isCustomParameter)
   );
 }
 

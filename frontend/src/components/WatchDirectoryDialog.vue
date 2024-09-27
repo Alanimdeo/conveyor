@@ -56,7 +56,7 @@
         type="primary"
         @click="emit('create')"
         :loading="loading"
-        :disabled="options.path === ''"
+        :disabled="props.disabled || options.path === ''"
       >
         {{ submitButtonText || "생성" }}
       </ElButton>
@@ -66,29 +66,16 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import type { WatchDirectory } from "@conveyor/types";
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  loading: {
-    type: Boolean,
-    required: true,
-  },
-  options: {
-    type: Object,
-    required: true,
-  },
-  title: {
-    type: String,
-    required: false,
-  },
-  submitButtonText: {
-    type: String,
-    required: false,
-  },
-});
+const props = defineProps<{
+  modelValue: boolean;
+  loading: boolean;
+  options: Partial<WatchDirectory>;
+  title?: string;
+  submitButtonText?: string;
+  disabled?: boolean;
+}>();
 const emit = defineEmits(["update:modelValue", "create"]);
 
 const opened = computed({

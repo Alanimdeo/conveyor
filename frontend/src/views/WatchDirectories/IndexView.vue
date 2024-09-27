@@ -102,6 +102,7 @@ import { getRegExp } from "korean-regexp";
 import WatchDirectoryDialog from "@/components/WatchDirectoryDialog.vue";
 import RemoveDialog from "@/components/RemoveDialog.vue";
 import PresetDialog from "@/components/PresetDialog.vue";
+import { replace } from "@/utils";
 
 const router = useRouter();
 const currentDirectoryId = ref(0);
@@ -225,8 +226,18 @@ async function refreshWatchDirectories() {
 }
 
 const presetDialog = ref(false);
-function selectPreset(preset: WatchDirectoryPreset) {
+function selectPreset(
+  preset: WatchDirectoryPreset,
+  customParameters: { [key: string]: string }
+) {
   createDirectoryOptions.value = Object.assign({}, preset);
+  for (const key of Object.keys(customParameters)) {
+    createDirectoryOptions.value.path = replace(
+      createDirectoryOptions.value.path,
+      key,
+      customParameters[key]
+    );
+  }
 }
 
 const query = ref("");

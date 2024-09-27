@@ -331,6 +331,7 @@ import { isEqual } from "lodash";
 import { ElMessage } from "element-plus";
 import { getRegExp } from "korean-regexp";
 import { Check, Delete, Edit, Plus, Files } from "@element-plus/icons-vue";
+import { replace } from "@/utils";
 import type {
   WatchDirectory,
   WatchCondition,
@@ -617,11 +618,21 @@ const presetDialogMode = ref<"watch-directory" | "watch-condition">(
   "watch-directory"
 );
 
-function onPresetSelect(preset: WatchDirectoryPreset | WatchConditionPreset) {
+function onPresetSelect(
+  preset: WatchDirectoryPreset | WatchConditionPreset,
+  customParameters: { [key: string]: string }
+) {
   if (presetDialogMode.value === "watch-directory") {
     const { name } = watchDirectory.value;
     watchDirectory.value = Object.assign({}, preset as WatchDirectoryPreset);
     watchDirectory.value.name = name;
+    for (const key of Object.keys(customParameters)) {
+      watchDirectory.value.path = replace(
+        watchDirectory.value.path,
+        key,
+        customParameters[key]
+      );
+    }
   } else {
     const { name } = createConditionOptions.value;
     createConditionOptions.value = Object.assign(
@@ -629,6 +640,18 @@ function onPresetSelect(preset: WatchDirectoryPreset | WatchConditionPreset) {
       preset as WatchConditionPreset
     );
     createConditionOptions.value.name = name;
+    for (const key of Object.keys(customParameters)) {
+      createConditionOptions.value.destination = replace(
+        createConditionOptions.value.destination,
+        key,
+        customParameters[key]
+      );
+      createConditionOptions.value.pattern = replace(
+        createConditionOptions.value.pattern,
+        key,
+        customParameters[key]
+      );
+    }
     if (createConditionOptions.value.renamePattern) {
       createConditionRenamePattern.value = Object.assign(
         createConditionRenamePattern.value,
@@ -636,6 +659,18 @@ function onPresetSelect(preset: WatchDirectoryPreset | WatchConditionPreset) {
       );
       createConditionOptions.value.renamePattern = undefined;
       createConditionOptionsHasRenamePattern.value = true;
+      for (const key of Object.keys(customParameters)) {
+        createConditionRenamePattern.value.pattern = replace(
+          createConditionRenamePattern.value.pattern,
+          key,
+          customParameters[key]
+        );
+        createConditionRenamePattern.value.replaceValue = replace(
+          createConditionRenamePattern.value.replaceValue,
+          key,
+          customParameters[key]
+        );
+      }
     } else {
       createConditionOptionsHasRenamePattern.value = false;
     }

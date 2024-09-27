@@ -13,10 +13,7 @@
           class="left-align"
           plain
           size="large"
-          @click="
-            selectedPresetId = preset.id;
-            confirmDialog = true;
-          "
+          @click="selectPreset(preset.id)"
         >
           {{ preset.name || "이름 없는 프리셋 " + preset.id }}
         </ElButton>
@@ -34,17 +31,35 @@
   </ElDialog>
 
   <ElDialog v-model="confirmDialog" title="선택 확인">
-    프리셋을 불러오시겠습니까? 저장되지 않은 변경 사항은 모두 사라집니다.
+    <div v-if="selectedPresetCustomParameters.length > 0" class="mb">
+      <ElText style="margin-bottom: 1rem" size="large">
+        사용자 정의 매개변수
+      </ElText>
+      <div
+        v-for="parameter in selectedPresetCustomParameters"
+        :key="parameter.key"
+      >
+        <ElFormItem :label="parameter.label">
+          <ElInput v-model="customParameters[parameter.key]" />
+        </ElFormItem>
+      </div>
+    </div>
+    <span class="mb">
+      프리셋을 불러오면 기존에 작성한 모든 내용이 사라집니다.
+    </span>
 
     <template #footer>
       <ElButton @click="confirmDialog = false">취소</ElButton>
-      <ElButton type="primary" @click="select(selectedPresetId)">확인</ElButton>
+      <ElButton type="primary" @click="confirm(selectedPresetId)"
+        >확인</ElButton
+      >
     </template>
   </ElDialog>
 </template>
 
 <script setup lang="ts">
 import type {
+  CustomParameter,
   WatchConditionPreset,
   WatchDirectoryPreset,
 } from "@conveyor/types";
@@ -52,16 +67,10 @@ import { computed, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { getRegExp } from "korean-regexp";
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: true,
-  },
-  type: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{
+  modelValue: boolean;
+  type: string;
+}>();
 const emit = defineEmits(["update:modelValue", "select"]);
 
 const opened = computed({
@@ -71,6 +80,9 @@ const opened = computed({
 
 const presets = ref<WatchDirectoryPreset[] | WatchConditionPreset[]>([]);
 const selectedPresetId = ref(-1);
+
+const selectedPresetCustomParameters = ref<CustomParameter[]>([]);
+const customParameters = ref<{ [key: string]: string }>({});
 
 const query = ref("");
 const queryRegExp = ref<RegExp | null>(null);
@@ -103,7 +115,31 @@ watch(opened, async (value) => {
 
 const confirmDialog = ref(false);
 
-async function select(id: number) {
+async function selectPreset(id: number) {
+  selectedPresetId.value = id;
+  selectedPresetCustomParameters.value =
+    (await fetchCustomParameters(id)) || [];
+  customParameters.value = {};
+  for (const parameter of selectedPresetCustomParameters.value) {
+    customParameters.value[parameter.key] = "";
+  }
+
+  confirmDialog.value = true;
+}
+
+async function fetchCustomParameters(id: number) {
+  const response: WatchDirectoryPreset | WatchConditionPreset | undefined =
+    await fetch(`/api/${props.type}-preset/${id}`).then((res) => {
+      if (res.ok) {
+        return res.json();
+      } else {
+        ElMessage.error("프리셋을 불러오지 못했습니다.");
+      }
+    });
+  return response?.customParameters;
+}
+
+async function confirm(id: number) {
   const response = await fetch(`/api/${props.type}-preset/${id}`).then(
     (res) => {
       if (res.ok) {
@@ -117,7 +153,7 @@ async function select(id: number) {
   opened.value = false;
   confirmDialog.value = false;
   ElMessage.success("프리셋을 불러왔습니다.");
-  emit("select", response);
+  emit("select", response, customParameters.value);
 }
 </script>
 
