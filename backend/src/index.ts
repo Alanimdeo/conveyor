@@ -8,7 +8,6 @@ import session from "express-session";
 import rateLimit from "express-rate-limit";
 import { csrf } from "lusca";
 import createError from "http-errors";
-import SqliteDatabase from "better-sqlite3";
 import createSqliteStore from "better-sqlite3-session-store";
 import logger from "morgan";
 import { loadDatabase } from "./modules/db";
